@@ -1,0 +1,40 @@
+Source: https://search.earthdata.nasa.gov/search?q=lebanon%20satellite%20imagery%20&polygon[0]=35.51171%2C33.86171%2C35.51169%2C33.86128%2C35.5121%2C33.86122%2C35.51233%2C33.86113%2C35.51271%2C33.86107%2C35.51266%2C33.86138%2C35.51243%2C33.86148%2C35.51223%2C33.86151%2C35.51223%2C33.86164%2C35.51199%2C33.86169%2C35.51171%2C33.86171&lat=33.82988125757227&long=35.51281924493385&zoom=17.83182863781803
+refer to "CnDModel\data\initial\Locations of sites google earth,NASA.xlsx" for building metadata
+
+Index Mapping table:
+
+Pre:
+01: Al laylaki coord: 33.8325,35.51375
+02: Al laylaki 33.83337,35.51562
+03: al laylaki 33.83499,35.51348
+04: Bourj El Brajne 33.83441,35.51089
+05: Bourj El Brajne 33.83494,35.51357
+06: El laylaki 33.83398,35.51631
+07: El laylaki  33.83425,35.51678
+08: Haret Hreik 33.84848,35.51002
+
+
+Post:
+01: Al laylaki coord: 33.8325,35.51375
+02: Al laylaki 33.83337,35.51562
+03: al laylaki 33.83499,35.51348
+04: Bourj El Brajne 33.83441,35.51089
+05: Bourj El Brajne 33.83494,35.51357
+06: El laylaki 33.83398,35.51631
+07: El laylaki  33.83425,35.51678
+08: Haret Hreik 33.84848,35.51002
+
+
+Single:
+01: Amrousiye 33.81857,35.51128 across the road of Nasrallah marble factory 
+02: Amrousiye 33.81833,35.5114 
+03: Al amrousiyeh 33.81928,35.51137
+04: Bourj El Barajne 33.83544,35.49754
+05: Bourj el barajne 33.84552,35.5103
+06: Bourj El barajne 33.84613,35.51044
+07: Haret Hreik 33.84936,35.51085
+08: Haret Hreik 33.85034,35.50797
+09: Haret Hreik 33.8509,35.50918
+10: Haret Hreik 33.85679,35.51005
+11: Chiyah 33.86016,35.51262
+12: Chiyeh 33.86164,35.51182
