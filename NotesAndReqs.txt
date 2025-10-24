@@ -1,1 +1,18 @@
-placeholder text
+Requirements:
+
+Take coordinates of buildings affected.
+Retrieve pre- and post-conflict satellite imagery (Google Earth/Maps).
+Estimate surface area destroyed from those images.
+From Street View, estimate number of floors (≈3 m per floor).
+Combine them → compute total debris mass per building.
+(Later) estimate material composition via contextual or auxiliary data.
+
+
+Notes:
+
+Google images may be outdated, might need to instead use NASA EarthData, Maxar Open Data, or Sentinel Hub APIs
+Google street view coverage may be limited in Lebanon, might need to instead use OpenStreetMap data, LIDAR, or manual sun/shadow calculation to estimate building height / number of floors
+Identifying damage area uses pixel change in pre/post imagery, might be inefficient, benefits from an ML model rather than algorithmic calculation
+    can optionally go by a collapsed/non-collapsed state, i.e. all pre- surface area is damaged
+Volume and Mass calculations are direct computations from previous data
+material distribution will later be covered
