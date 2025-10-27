@@ -12,8 +12,8 @@ Try calculating height from shadow length or other cues, and compare with manual
 Check how well automatic calculations match the dataset numbers.
 
 3- (DONE) Data Organization
-Clean up and organize the pre/post image files into training and testing folders.
-Create or update a key file linking coordinates, locations, and image names.
+-- Clean up and organize the pre/post image files into training and testing folders.
+-- Create or update a key file linking coordinates, locations, and image names.
 
 4- Collaboration Setup
 Split work
