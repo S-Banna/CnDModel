@@ -1,0 +1,35 @@
+Current Script Explanation collapsedetection.py and driver.py
+
+The current script detects changes between two images ("before" and "after" disaster). It works by:
+    Aligning images: Matches features to line up both pictures
+    Removing blue marks: Filters out blue damage annotations
+    Comparing differences: Finds what changed between the aligned images
+    Creating damage mask: Shows damaged areas in white, everything else black
+
+
+The Problem: Non-Normalized Dataset
+
+Our images have major issues that break the script:
+    Different colors: "After" images have orange tint, "before" are normal
+    Blue circles: "After" images already have damage marked with blue circles
+    Different types: "Before" are full browser screenshots, "after" are zoomed map crops
+    Wrong scales: Images are zoomed at different levels
+    UI elements: Browser buttons and bars in "before" images
+
+The script expects two similar images of the same area, but gets completely different pictures.
+
+
+Two Solutions
+Approach 1: Fix Current Script
+    Detect and remove the blue circles in "after" images (since they already mark damage, removes point of script)
+    Crop out browser UI from "before" images
+    Handle different colors and zoom levels
+
+Approach 2: New Dataset
+    Get professional satellite images (Google Earth, NASA)
+    Ensure same area, zoom, and colors for both images
+    Build a clean dataset that works with standard change detection
+
+I think we should go for the second approach for now, get some manual data and test it
+later we can either optimize for our current data set for testing, or automate getting normalized data
+    automation would be: script that gets pre images (images from 2023-2024) and post images (2025) from a set of coordinates from some satellite imagery source on its own
