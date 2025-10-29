@@ -25,8 +25,9 @@ def create_patches(image_path, patch_size=512, stride=256, save_dir=None):
         os.makedirs(save_dir, exist_ok=True)
 
     patch_id = 0
-    for x in range(0, width - patch_size + 1, stride):
-        for y in range(0, height - patch_size + 1, stride):
+    # addwd max() This prevents the code from crashing if the image is smaller than patch_size
+    for x in range(0, max(width - patch_size + 1, 1), stride):
+        for y in range(0, max(height - patch_size + 1, 1), stride):
             patch = image.crop((x, y, x + patch_size, y + patch_size))
             patches.append(patch)
 
