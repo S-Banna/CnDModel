@@ -8,9 +8,9 @@ def align_images(img1, img2):
     Rough alignment using ORB feature matching + homography.
     Works best when both images cover the same scene at slightly different angles.
     """
-    #ADDED
-    pre_path = r"C:\Users\user\CnDModel\data\pairs\pre\33.8325 35.51375 zoomed pre image up.png"
-    post_path = r"C:\Users\user\CnDModel\data\pairs\post\33.8325 35.51375 zoomed post image up.png"
+    # #ADDED
+    # pre_path = r"C:\Users\user\CnDModel\data\pairs\pre\33.8325 35.51375 zoomed pre image up.png"
+    # post_path = r"C:\Users\user\CnDModel\data\pairs\post\33.8325 35.51375 zoomed post image up.png"
     
     orb = cv2.ORB_create(5000)
     kp1, des1 = orb.detectAndCompute(img1, None)
@@ -77,6 +77,44 @@ def change_detection(pre_path, post_path, visualize=True):
     if visualize:
         cv2.imshow("Diff Map", diff)
         cv2.imshow("Threshold", thresh)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    return thresh
+
+def simple_change_detection(pre_path, post_path, visualize=True):
+    pre = cv2.imread(pre_path)
+    post = cv2.imread(post_path)
+
+    # resize both to same size
+    h, w = pre.shape[:2]
+    post = cv2.resize(post, (w, h))
+
+    # convert to grayscale
+    pre_gray  = cv2.cvtColor(pre,  cv2.COLOR_BGR2GRAY)
+    post_gray = cv2.cvtColor(post, cv2.COLOR_BGR2GRAY)
+
+    # smooth to reduce small lighting/angle noise
+    pre_blur  = cv2.GaussianBlur(pre_gray,  (5, 5), 0)
+    post_blur = cv2.GaussianBlur(post_gray, (5, 5), 0)
+
+    # absolute difference
+    diff = cv2.absdiff(pre_blur, post_blur)
+
+    # normalize and threshold
+    diff_norm = cv2.normalize(diff, None, 0, 255, cv2.NORM_MINMAX)
+    _, thresh = cv2.threshold(diff_norm, 30, 255, cv2.THRESH_BINARY)
+
+    # clean small noise
+    kernel = np.ones((5, 5), np.uint8)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel)
+    thresh = cv2.morphologyEx(thresh, cv2.MORPH_CLOSE, kernel)
+
+    if visualize:
+        cv2.imshow("Pre", pre)
+        cv2.imshow("Post", post)
+        cv2.imshow("Difference", diff_norm)
+        cv2.imshow("Thresholded Damage", thresh)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 

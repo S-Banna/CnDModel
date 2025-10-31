@@ -9,7 +9,7 @@ post_path = "../data/images_coords/images/single/Single08HaretHreik.png"
 # Make sure results folder exists
 os.makedirs("results", exist_ok=True)
 
-mask = cd.change_detection(pre_path, post_path)
+mask = cd.simple_change_detection(pre_path, post_path)
 
 if mask is not None:
     cv2.imwrite("results/damage_mask01.png", mask)
