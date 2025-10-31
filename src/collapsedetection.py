@@ -95,8 +95,8 @@ def simple_change_detection(pre_path, post_path, visualize=True):
     post_gray = cv2.cvtColor(post, cv2.COLOR_BGR2GRAY)
 
     # smooth to reduce small lighting/angle noise
-    pre_blur  = cv2.GaussianBlur(pre_gray,  (5, 5), 0)
-    post_blur = cv2.GaussianBlur(post_gray, (5, 5), 0)
+    pre_blur  = cv2.GaussianBlur(pre_gray,  (25, 25), 0)
+    post_blur = cv2.GaussianBlur(post_gray, (25, 25), 0)
 
     # absolute difference
     diff = cv2.absdiff(pre_blur, post_blur)
