@@ -8,6 +8,10 @@ def align_images(img1, img2):
     Rough alignment using ORB feature matching + homography.
     Works best when both images cover the same scene at slightly different angles.
     """
+    #ADDED
+    pre_path = r"C:\Users\user\CnDModel\data\pairs\pre\33.8325 35.51375 zoomed pre image up.png"
+    post_path = r"C:\Users\user\CnDModel\data\pairs\post\33.8325 35.51375 zoomed post image up.png"
+    
     orb = cv2.ORB_create(5000)
     kp1, des1 = orb.detectAndCompute(img1, None)
     kp2, des2 = orb.detectAndCompute(img2, None)
@@ -52,8 +56,8 @@ def change_detection(pre_path, post_path, visualize=True):
     post = cv2.resize(post, (w, h))
 
     # clean up blue rectangles
-    post_clean = remove_blue_marks(post)
-
+    # changed post_clean = remove_blue_marks(post) because the pictures do not have blue circles anymore
+    post_clean = post
     # align roughly
     aligned_post = align_images(pre, post_clean)
 
