@@ -33,7 +33,7 @@ Single:
 05: Bourj el barajne 33.84552,35.5103
 06: Bourj El barajne 33.84613,35.51044
 07: Haret Hreik 33.84936,35.51085
-08: Haret Hreik 33.85034,35.50797
+08: Haret Hreik 33.85034,35.50797 (post image grabbed from google earth)
 09: Haret Hreik 33.8509,35.50918
 10: Haret Hreik 33.85679,35.51005
 11: Chiyah 33.86016,35.51262
