@@ -121,3 +121,71 @@ def simple_change_detection(pre_path, post_path, visualize=True):
         cv2.destroyAllWindows()
 
     return thresh
+
+
+def block_change_detection(pre_path, post_path, block_size=16, visualize=True):
+    # Load and resize
+    pre = cv2.imread(pre_path)
+    post = cv2.imread(post_path)
+
+    h, w = pre.shape[:2]
+    post = cv2.resize(post, (w, h))
+
+    # Convert to grayscale
+    pre_gray = cv2.cvtColor(pre, cv2.COLOR_BGR2GRAY)
+    post_gray = cv2.cvtColor(post, cv2.COLOR_BGR2GRAY)
+
+    # Optional: histogram match normalization
+    pre_gray = cv2.equalizeHist(pre_gray)
+    post_gray = cv2.equalizeHist(post_gray)
+
+    # Optional: Gaussian blur to reduce minor noise
+    pre_blur  = cv2.GaussianBlur(pre_gray, (5,5), 0)
+    post_blur = cv2.GaussianBlur(post_gray, (5,5), 0)
+
+    # Compute difference block-wise
+    diff_map = np.zeros_like(pre_gray, dtype=np.uint8)
+
+    for y in range(0, h, block_size):
+        for x in range(0, w, block_size):
+            y_end = min(y + block_size, h)
+            x_end = min(x + block_size, w)
+
+            pre_block  = pre_blur[y:y_end, x:x_end]
+            post_block = post_blur[y:y_end, x:x_end]
+
+            # average intensity difference in the block
+            diff_val = abs(float(pre_block.mean()) - float(post_block.mean()))
+
+            # Fill block region with that difference (scaled)
+            diff_map[y:y_end, x:x_end] = np.clip(diff_val * 5, 0, 255)  # multiply to emphasize
+
+    # Threshold difference map
+    _, mask = cv2.threshold(diff_map, 30, 255, cv2.THRESH_BINARY)
+
+    # Clean up noise
+    kernel = np.ones((5,5), np.uint8)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+
+    if visualize:
+        cv2.imshow("Block Difference Map", diff_map)
+        cv2.imshow("Damage Mask", mask)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+
+    # Create an empty visualization canvas
+    delineated = cv2.cvtColor(post_gray, cv2.COLOR_GRAY2BGR)
+
+    # Draw outlines (or filled shapes)
+    for cnt in contours:
+        area = cv2.contourArea(cnt)
+        if area > 500:  # ignore small noise
+            cv2.drawContours(delineated, [cnt], -1, (0,0,255), 2)  # red outline
+
+    cv2.imshow("Delineated Damage Areas", delineated)
+    cv2.waitKey(0)
+
+    return mask
