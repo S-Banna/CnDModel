@@ -1,5 +1,20 @@
-Next Steps
-----------
+Data Collection Next Steps
+--------------------------
+Pre-Images: accessible through Google Earth, NASA space view, or any other commercial satellite views
+Post-Images: accessible throughnews sources or StreetMap / more up to daet satellite views
+
+Parameters to ensure standard pre/post imagery:
+    Fixed coordinates
+    Same zoom level (standard image size, can be split into patches or stretched)
+    Vertical top-down view / side view
+    Same field of view & crop
+    Clean map style (no labels/UI)
+
+
+
+
+General Next Steps
+------------------
 
 1- Damage Detection Prototype
 Use the pre/post destruction image pairs to test a basic change detection algorithm.

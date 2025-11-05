@@ -1,10 +1,10 @@
 to run driver.py:
 
-change pre/post directories to the chosen files
+change pre/post directory strings to the chosen files
 
 ensure dependencies installed:
 pip install pillow numpy opencv-python
 
 run the script:
 cd src
-python driver
+python ./driver.py
