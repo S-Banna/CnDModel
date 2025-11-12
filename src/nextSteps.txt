@@ -10,7 +10,15 @@ Parameters to ensure standard pre/post imagery:
     Same field of view & crop
     Clean map style (no labels/UI)
 
+Dev Next Steps
+--------------
 
+Clean up the script, and decide:
+
+1- When/If switch to and begin training and prepping for an AI model
+2- Work further on the current algorithmic approach
+    a_ Switch to a "zone of maximum difference" approach rather than "area where there is high difference" approach
+        this 'should' help with stark differences in pre / post images
 
 
 General Next Steps
