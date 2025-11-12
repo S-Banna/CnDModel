@@ -10,9 +10,9 @@ Parameters to ensure standard pre/post imagery:
     Same field of view & crop
     Clean map style (no labels/UI)
 
+
 Dev Next Steps
 --------------
-
 Clean up the script, and decide:
 
 1- When/If switch to and begin training and prepping for an AI model
