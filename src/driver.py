@@ -3,7 +3,7 @@ import collapsedetection as cd
 import cv2
 
 # Paths
-pre_path = "../data/images_coords/images/fabricated/Pre04BourjElBrajneFABRICATED.png"
+pre_path = "../data/images_coords/images/fabricated/Pre04BourjElBrajneFABRICATEDHEAVYHUESHIFTED.png"
 post_path = "../data/images_coords/images/fabricated/Post04BourjElBrajne.png"
 
 # Make sure results folder exists
