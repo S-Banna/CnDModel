@@ -1,7 +1,8 @@
 Data Collection Next Steps
 
-Collection data pre/post from similar cases (war,earthquakes)
-example: 
+Collection data pre/post from similar cases (wars, earthquakes, ...)
+
+eg: 
 2020 Beirut Port Explosion
 2006 Lebanese war (issue faced: how to find and collect the coordinates of the affected areas/buildings)
 
