@@ -1,12 +1,13 @@
 Data Collection Next Steps
+--------------------------
+
+VIP: Agree on a naming convention
 
 Collection data pre/post from similar cases (wars, earthquakes, ...)
-
 eg: 
 2020 Beirut Port Explosion
 2006 Lebanese war (issue faced: how to find and collect the coordinates of the affected areas/buildings)
 
---------------------------
 Pre-Images: accessible through Google Earth, NASA space view, or any other commercial satellite views
 Post-Images: accessible throughnews sources or StreetMap / more up to daet satellite views
 
@@ -42,7 +43,7 @@ Use the existing metadata dataset (height, area, volume) to test simple height a
 Try calculating height from shadow length or other cues, and compare with manual data.
 Check how well automatic calculations match the dataset numbers.
 
-3- (DONE) Data Organization
+3- Data Organization
 -- Clean up and organize the pre/post image files into training and testing folders.
 -- Create or update a key file linking coordinates, locations, and image names.
 
