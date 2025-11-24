@@ -1,8 +1,6 @@
 Data Collection Next Steps
 --------------------------
 
-VIP: Agree on a naming convention
-
 Collection data pre/post from similar cases (wars, earthquakes, ...)
 eg: 
 2020 Beirut Port Explosion
