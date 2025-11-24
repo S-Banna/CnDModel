@@ -1,4 +1,7 @@
 Data Collection Next Steps
+
+Step 1: agree on naming convention
+Step 2: introduce accuracy metrics (precision,...) to our code 
 --------------------------
 
 Collection data pre/post from similar cases (wars, earthquakes, ...)
