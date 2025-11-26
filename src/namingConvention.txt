@@ -16,6 +16,6 @@ For the collection and storage of images, we will do the following: [type]_[data
             This organization of difficulty will be pivotal for training and testing the model.
         For example, the fabricated data we used to test would be an example of gq (good quality), being obviously detectable, 
             while an image set with varying weather conditions, varying angle, varying hue, and small hard-to-spot 
-            damage would be a bq (bad quality).
+            damage would be a bq (bad quality). An image set with slight variations in angle/hue/damage would be an mq.
     An example of an image: pre-top_HaretHreik_012_mq.png and post-top_HaretHreik_012_mq.png
         note: trailing zeroes for all numbers are important (001 rather than 1 is necessary)
