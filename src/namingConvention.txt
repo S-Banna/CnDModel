@@ -6,16 +6,16 @@ For the training of the model, we will have three files per image:
     Example for one image: pre001.png, post001.png, mask001.png. 
     We will set it up and manage it once we start deeper training.
 
-For the collection and storage of images, we will do the following: [type]_[data]_[NNN]_XXof10.png
+For the collection and storage of images, we will do the following: [type]_[data]_[NNN]_[bq/mq/gq].png
     The [type] part will dictate whether the image is a pre or post image, and whether it is a top or side view image.
     The [data] part is whatever we might need it to be, can be name of city, date of collection, info about the incident itself, ...
     The [NNN] part is just a 3 digit identifier, unique for each image. 
         Can be done in order of collection (like what we have now, 001 / 002 / 003, ...)
-    The XXof10 part is a score out of 10 of how clear and visible the damage in the image is. (means "XX out of 10") 
+    The [bq/mq/gq] part is a score of how clear and visible the damage in the image is. (bad/medium/good quality)
         It will be done to organize the data into: easy data for the model to detect, harder data for the model to detect. 
             This organization of difficulty will be pivotal for training and testing the model.
-        For example, the fabricated data we used to test would be an example of 10/10 (10of10), being obviously detectable, 
+        For example, the fabricated data we used to test would be an example of gq (good quality), being obviously detectable, 
             while an image set with varying weather conditions, varying angle, varying hue, and small hard-to-spot 
-            damage would be a 2/10 (2of10). This scale will be relative to the data we collect, we can shift it around later.
-    An example of an image: pre-top_HaretHreik_012_05of10.png and post-top_HaretHreik_012_05of10.png
+            damage would be a bq (bad quality).
+    An example of an image: pre-top_HaretHreik_012_mq.png and post-top_HaretHreik_012_mq.png
         note: trailing zeroes for all numbers are important (001 rather than 1 is necessary)
