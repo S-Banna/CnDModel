@@ -14,6 +14,10 @@ Specificity = TN/(TN+FP)
 
 Note that:
     TP = True Positive; i.e. a positive that the model correctly identifies
+        meaning: there exists damage in the post image which the model correctly identifies in location and size
     TN = True Negative; i.e. a negative that the model correctly identifies
+        meaning: there does not exist any damage in the post image and the model correctly identifies that
     FP = False Positive; i.e. a positive that the model incorrectly identifies as a negative
+        meaning: there exists damage in the post image, but the model incorrectly identifies it in terms of location and/or size
     FN = False Negative; i.e. a negative that the model incorrectly identifies as a positive
+        meaning: there does not exist any damage in the post image, but the model incorrectly identifies damage somewhere
