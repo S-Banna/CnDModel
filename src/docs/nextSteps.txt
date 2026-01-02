@@ -1,3 +1,9 @@
+Data Organization and Preparation
+---------------------------------
+
+Prepare all images into trainable damage masks
+Develop model prototype
+
 Data Collection Next Steps
 --------------------------
 
