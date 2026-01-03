@@ -3,8 +3,7 @@ Our naming convention will be split into two:
 
 For the training of the model, we will have three files per image: 
     one pre, one post, and the last one an image or bit mask detailing where the damage is so the model can train off of it.
-    Example for one image: pre001.png, post001.png, mask001.png. 
-    We will set it up and manage it once we start deeper training.
+    Example for one image: 001pre.png, 001post.png, 001mask.png. 
 
 For the collection and storage of images, we will do the following: [NNN]_[type]_[data]_[bq/mq/gq].png
     The [NNN] part is just a 3 digit identifier, unique for each image. 
