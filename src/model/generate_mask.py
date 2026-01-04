@@ -8,7 +8,7 @@ def generate_mask(json_file):
     training_data_dir = os.path.join(base_dir, "training_data")
     json_path = os.path.join(training_data_dir, json_file)
     
-    match = re.search(r'post(\d+)\.json', json_file)
+    match = re.search(r'(\d+)post\.json', json_file)
     if not match:
         print("error: could not extract number from JSON filename")
         return
@@ -42,7 +42,7 @@ def generate_mask(json_file):
         label_file_path = os.path.join(output_folder_path, "label.png")
         
         if os.path.exists(label_file_path):
-            new_mask_name = f"mask{file_number}.png"
+            new_mask_name = f"{file_number}mask.png"
             new_mask_path = os.path.join(training_data_dir, new_mask_name)
             
             shutil.move(label_file_path, new_mask_path)
@@ -54,7 +54,8 @@ def generate_mask(json_file):
     finally:
         os.chdir(original_cwd)
 
-# example usage:
-# generate_mask("post001.json")
-
-generate_mask("post001.json")
+# change range to needed numbers (start inclusive, ends exclusive)
+# example: 2, 5 iterates through 2, 3, 4.
+for i in range(2, 24):
+    file = str(i).zfill(3) + "post.json"
+    generate_mask(file)
