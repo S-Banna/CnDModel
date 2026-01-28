@@ -8,7 +8,7 @@ model = MiniUNet()
 model.load_state_dict(torch.load("mini_unet.pt"))
 model.eval()
 
-for i in range(19, 21):
+for i in range(18, 21):
     x, y = dataset[i]
 
     with torch.no_grad():
