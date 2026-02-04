@@ -1,0 +1,8 @@
+Requirements:
+
+Take coordinates of buildings affected.
+Retrieve pre- and post-conflict satellite imagery (Google Earth/Maps).
+Estimate surface area destroyed from those images.
+From Street View, estimate number of floors (≈3 m per floor).
+Combine them → compute total debris mass per building.
+(Later) estimate material composition via contextual or auxiliary data.
