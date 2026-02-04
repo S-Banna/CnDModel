@@ -1,26 +1,6 @@
-Data Organization and Preparation
----------------------------------
+Next Steps
+----------
 
-Prepare all images into trainable damage masks
-Develop model prototype
-
-Data Collection Next Steps
---------------------------
-
-Collection data pre/post from similar cases (wars, earthquakes, ...)
-eg: 
-2020 Beirut Port Explosion
-2006 Lebanese war (issue faced: how to find and collect the coordinates of the affected areas/buildings)
-
-Pre-Images: accessible through Google Earth, NASA space view, or any other commercial satellite views
-Post-Images: accessible through news sources or StreetMap / more up to date satellite views
-
-Check OnGEO Intelligence Satellite Imagery Report Highresolution (paid) https://ongeo-intelligence.com/services/satellite-imagery-report-ongeo-intelligence?gad_source=1&gad_campaignid=21875564091&gbraid=0AAAAA9wJm1gIUAg_ddEjpgfhJcrRO5ERz&gclid=Cj0KCQiArOvIBhDLARIsAPwJXObQ5wi821rdkrSODOQrSll66ryxjTtJWOrtwuIawCpYOgfPXmcTYagaAiOIEALw_wcB
-Parameters to ensure standard pre/post imagery:
-    Fixed coordinates
-    Same zoom level (standard image size, can be split into patches or stretched)
-    Vertical top-down view / side view
-    Same field of view & crop
-    Clean map style (no labels/UI)
-
-Damage masks: create manually using labelme and generate_mask.py
+Train model compatible with xView2 dataset. This model will:
+a) Train on the data
+b) Detect damaged/collapsed buildings using pre/post input images
