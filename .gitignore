@@ -12,3 +12,6 @@ sources.txt
 **/temp/
 
 **/*_json/
+
+**/legacy
+*/*/legacy
