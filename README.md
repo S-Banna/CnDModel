@@ -1,24 +1,45 @@
-Repository for the Construction and Demolition (C&D) Rubble Volume Quantification Automated Model.
+# Construction & Demolition (C&D) Rubble Volume Quantification Model
 
-# Satellite Image Collapse Detection
+Repository for the development of an automated system to estimate rubble volume and debris mass from satellite imagery following building collapse events.
 
-In this project, we prepared a normalized Google Earth dataset.
-For each location, we manually extracted pre-strike and post-strike satellite images with identical parameters:
+---
 
-- Fixed coordinate
-- Same zoom level
-- Vertical top-down view / side view
-- Same field of view & crop
-- Clean map style (no labels/UI)
+## Project Overview
 
-This made the only difference between images the actual physical change, allowing the SSIM-based change detector to produce accurate collapse masks.
+This project aims to build a computer vision pipeline that:
 
-We also implemented:
+- Takes coordinates of affected buildings  
+- Retrieves pre- and post-conflict satellite imagery  
+- Detects and delineates structural damage  
+- Estimates collapsed surface area  
+- Estimates number of floors (≈ 3m per floor, via Street View or metadata)  
+- Computes total debris volume and mass per building  
+- *(Future work)* Estimates material composition using contextual data  
 
-1. `collapsedetection.py`:
-   - Aligns images and removes blue annotations.
-   - Detects changes using SSIM.
-2. `driver.py`:
-   - Loads images and saves the detected mask.
-3. `patchcreation.py`:
-   - Splits large images into smaller patches for easier processing.
+---
+
+## Current Direction
+
+The project has transitioned from early classical change-detection prototypes to a structured, learning-based approach using annotated satellite datasets.
+
+Key components under development:
+
+- Pre/Post image ingestion and normalization  
+- Damage mask generation from polygon annotations  
+- Segmentation model training (UNet-style architecture)  
+- Pixel-level evaluation using overlap-based metrics (e.g., IoU, recall)  
+
+Training data is stored locally due to size constraints and referenced via configuration files.
+
+---
+
+## Intended Pipeline
+
+1. Input building coordinates  
+2. Retrieve standardized satellite imagery  
+3. Detect and delineate collapse regions  
+4. Compute affected surface area  
+5. Estimate building height  
+6. Derive debris volume and mass  
+
+---
