@@ -1,3 +1,7 @@
+// NOTE //
+// This data is now deprecated //
+// we will be using the xView2 dataset as is //
+
 Our naming convention will be split into two:
 
 
