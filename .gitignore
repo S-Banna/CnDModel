@@ -13,5 +13,6 @@ sources.txt
 
 **/*_json/
 
-**/legacy
-*/*/legacy
+**/legacy/
+*/legacy/
+*/*/legacy/
