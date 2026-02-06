@@ -1,5 +1,5 @@
 import os
-import scripts.collapsedetection as cd
+import collapsedetection as cd
 import cv2
 
 # Paths
