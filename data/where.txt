@@ -1,2 +1,0 @@
-training data is referenced on this computer as:
-C:\Users\user\Downloads\geotiffs
