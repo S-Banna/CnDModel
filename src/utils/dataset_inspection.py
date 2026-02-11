@@ -15,19 +15,19 @@ def load_config():
 # -----------------------------
 # CLASSIFY BUILDINGS
 # -----------------------------
-def classify_buildings(data_root): # Scans all JSONs and counts buildings per subtype
+def classify_buildings(labels_dir):  # Scans all JSONs and counts buildings per subtype
     subtype_counts = {}
     binary_counts = {"damaged": 0, "undamaged": 0}
 
-    for root, _, files in os.walk(data_root):
+    for root, _, files in os.walk(labels_dir):
         for file in files:
             if file.endswith("_post_disaster.json"):
                 json_path = os.path.join(root, file)
                 with open(json_path) as f:
                     data = json.load(f)
 
-                for feat in data["features"]["lng_lat"]:
-                    subtype = feat["properties"]["subtype"]
+                for feat in data.get("features", {}).get("lng_lat", []):
+                    subtype = feat.get("properties", {}).get("subtype", "un-classified")
                     subtype_counts[subtype] = subtype_counts.get(subtype, 0) + 1
 
                     # binary collapse metrics
@@ -47,9 +47,10 @@ def classify_buildings(data_root): # Scans all JSONs and counts buildings per su
 # -----------------------------
 if __name__ == "__main__":
     DATA_ROOT = load_config()
-    print(f"Scanning dataset at: {DATA_ROOT}\n")
+    labels_dir = os.path.join(DATA_ROOT, "labels")
+    print(f"Scanning dataset at: {labels_dir}\n")
 
-    subtype_counts, binary_counts = classify_buildings(DATA_ROOT + "/labels")
+    subtype_counts, binary_counts = classify_buildings(labels_dir)
 
     print("Subtype counts:")
     for k, v in subtype_counts.items():
