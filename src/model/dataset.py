@@ -84,54 +84,54 @@ dataset = XView2Dataset(IMAGES_DIR, TARGETS_DIR)
 
 loader = DataLoader(
     dataset,
-    batch_size=4,
+    batch_size=2,
     shuffle=True,
     num_workers=0
 )
 
-print("Dataset size:", len(dataset))
+# print("Dataset size:", len(dataset))
 
 
-# -------------------------
-# VISUALIZE ONE BATCH
-# -------------------------
+# # -------------------------
+# # VISUALIZE ONE BATCH
+# # -------------------------
 
-images, masks = next(iter(loader))
+# images, masks = next(iter(loader))
 
-print("Batch image shape:", images.shape)  # (B,6,H,W)
-print("Batch mask shape:", masks.shape)    # (B,1,H,W)
+# # print("Batch image shape:", images.shape)  # (B,6,H,W)
+# # print("Batch mask shape:", masks.shape)    # (B,1,H,W)
 
-print(masks.unique())
-print(images.min(), images.max())
+# # print(masks.unique())
+# # print(images.min(), images.max())
 
 
-# Take first sample in batch
-img = images[0]
-mask = masks[0]
+# # Take first sample in batch
+# img = images[0]
+# mask = masks[0]
 
-# Split back to pre/post for visualization
-pre = img[:3].permute(1, 2, 0).numpy()
-post = img[3:].permute(1, 2, 0).numpy()
-mask_np = mask.squeeze().numpy()
+# # Split back to pre/post for visualization
+# pre = img[:3].permute(1, 2, 0).numpy()
+# post = img[3:].permute(1, 2, 0).numpy()
+# mask_np = mask.squeeze().numpy()
 
-fig, axes = plt.subplots(1, 4, figsize=(20, 5))
+# fig, axes = plt.subplots(1, 4, figsize=(20, 5))
 
-axes[0].imshow(pre)
-axes[0].set_title("Pre")
-axes[0].axis("off")
+# axes[0].imshow(pre)
+# axes[0].set_title("Pre")
+# axes[0].axis("off")
 
-axes[1].imshow(post)
-axes[1].set_title("Post")
-axes[1].axis("off")
+# axes[1].imshow(post)
+# axes[1].set_title("Post")
+# axes[1].axis("off")
 
-axes[2].imshow(post)
-axes[2].imshow(mask_np, alpha=0.4)
-axes[2].set_title("Post + Binary Mask")
-axes[2].axis("off")
+# axes[2].imshow(post)
+# axes[2].imshow(mask_np, alpha=0.4)
+# axes[2].set_title("Post + Binary Mask")
+# axes[2].axis("off")
 
-axes[3].imshow(mask_np, cmap="gray")
-axes[3].set_title("Binary Mask")
-axes[3].axis("off")
+# axes[3].imshow(mask_np, cmap="gray")
+# axes[3].set_title("Binary Mask")
+# axes[3].axis("off")
 
-plt.tight_layout()
-plt.show()
+# plt.tight_layout()
+# plt.show()
