@@ -27,7 +27,7 @@ TARGETS_DIR = os.path.join(DATA_ROOT, "targets")
 # DATASET
 # -------------------------
 
-class XView2Dataset(Dataset):
+class XVDataset(Dataset):
     def __init__(self, images_dir, targets_dir):
         self.images_dir = images_dir
         self.targets_dir = targets_dir
@@ -80,14 +80,14 @@ class XView2Dataset(Dataset):
 # DATALOADER
 # -------------------------
 
-dataset = XView2Dataset(IMAGES_DIR, TARGETS_DIR)
+# dataset = XView2Dataset(IMAGES_DIR, TARGETS_DIR)
 
-loader = DataLoader(
-    dataset,
-    batch_size=2,
-    shuffle=True,
-    num_workers=0
-)
+# loader = DataLoader(
+#     dataset,
+#     batch_size=2,
+#     shuffle=True,
+#     num_workers=0
+# )
 
 # print("Dataset size:", len(dataset))
 
