@@ -21,12 +21,11 @@ def main():
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # dataset
-    dataset = XVDataset(IMAGES_DIR, TARGETS_DIR)
-    dataset = Subset(dataset, range(100))
+    dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256)
 
     loader = DataLoader(
         dataset,
-        batch_size=2,
+        batch_size=8,
         shuffle=True,
         num_workers=4,
         pin_memory=True
