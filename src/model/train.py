@@ -7,6 +7,25 @@ from torch.utils.data import DataLoader, Subset
 from unet import UNet
 
 
+class DiceLoss(nn.Module):
+    def __init__(self, smooth=1e-6):
+        super().__init__()
+        self.smooth = smooth
+
+    def forward(self, logits, targets):
+        probs = torch.sigmoid(logits) 
+
+        probs = probs.view(-1)
+        targets = targets.view(-1)
+
+        intersection = (probs * targets).sum()
+        dice = (2. * intersection + self.smooth) / (
+            probs.sum() + targets.sum() + self.smooth
+        )
+
+        return 1 - dice 
+
+
 def load_config():
     with open("../../data/config.yaml", "r") as f:
         config = yaml.safe_load(f)
@@ -34,7 +53,8 @@ def main():
     # model
     model = UNet().to(device)
 
-    criterion = nn.BCEWithLogitsLoss()
+    bce = nn.BCEWithLogitsLoss()
+    dice = DiceLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
     model.train()
@@ -51,7 +71,10 @@ def main():
             masks = masks.to(device)
 
             outputs = model(images)
-            loss = criterion(outputs, masks)
+            loss_bce = bce(outputs, masks)
+            loss_dice = dice(outputs, masks)
+
+            loss = loss_bce + loss_dice
 
             optimizer.zero_grad()
             loss.backward()
