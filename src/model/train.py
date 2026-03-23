@@ -3,7 +3,8 @@ import torch.nn as nn
 import os, yaml
 from tqdm import tqdm
 from dataset import XVDataset
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
+from torch.utils.data import random_split
 from unet import UNet
 
 
@@ -31,6 +32,16 @@ def load_config():
         config = yaml.safe_load(f)
     return config["DATA_ROOT"]
 
+def compute_iou(logits, targets, threshold=0.5):
+    probs = torch.sigmoid(logits)
+    preds = (probs > threshold).float()
+
+    intersection = (preds * targets).sum(dim=(1,2,3))
+    union = (preds + targets).clamp(0,1).sum(dim=(1,2,3))
+
+    iou = (intersection + 1e-6) / (union + 1e-6)
+    return iou.mean().item()
+
 
 def main():
     DATA_ROOT = load_config()
@@ -42,10 +53,27 @@ def main():
     # dataset
     dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256)
 
-    loader = DataLoader(
+    val_size = int(0.1 * len(dataset))
+    train_size = len(dataset) - val_size
+
+    train_dataset, val_dataset = random_split(
         dataset,
+        [train_size, val_size],
+        generator=torch.Generator().manual_seed(42)
+    )
+
+    train_loader = DataLoader(
+        train_dataset,
         batch_size=8,
         shuffle=True,
+        num_workers=4,
+        pin_memory=True
+    )
+
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=8,
+        shuffle=False,
         num_workers=4,
         pin_memory=True
     )
@@ -65,7 +93,7 @@ def main():
 
         total_loss = 0
 
-        for images, masks in tqdm(loader, desc=f"Epoch {epoch+1}/{epochs}"):
+        for images, masks in tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}"):
 
             images = images.to(device)
             masks = masks.to(device)
@@ -82,9 +110,23 @@ def main():
 
             total_loss += loss.item()
 
-        avg_loss = total_loss / len(loader)
+        avg_loss = total_loss / len(train_loader)
 
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f}")
+        model.eval()
+        val_iou = 0
+
+        with torch.no_grad():
+            for images, masks in val_loader:
+                images = images.to(device)
+                masks = masks.to(device)
+
+                outputs = model(images)
+                val_iou += compute_iou(outputs, masks)
+
+        val_iou /= len(val_loader)
+        model.train()
+
+        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} - Val IoU: {val_iou:.4f}")
 
 
 if __name__ == "__main__":
