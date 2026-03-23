@@ -49,6 +49,7 @@ def main():
     TARGETS_DIR = os.path.join(DATA_ROOT, "targets")
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    best_iou = 0 # saves the best IoU seen at any epoch in training for visualization
 
     # dataset
     dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256)
@@ -125,6 +126,10 @@ def main():
 
         val_iou /= len(val_loader)
         model.train()
+
+        if val_iou > best_iou: # updates the saved model if observed IoU is better than previous epochs
+            best_iou = val_iou
+            torch.save(model.state_dict(), "model.pth")
 
         print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} - Val IoU: {val_iou:.4f}")
 
