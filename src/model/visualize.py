@@ -67,7 +67,7 @@ for i in range(len(dataset)):
     axes[2].imshow(mask, cmap="gray")
     axes[2].set_title("Ground Truth")
 
-    pred_display = axes[3].imshow(probs > 0.5, cmap="gray")
+    pred_display = axes[3].imshow(probs > 0.05, cmap="gray", vmin=0, vmax=1) 
     axes[3].set_title("Prediction")
 
     for ax in axes:
@@ -77,12 +77,11 @@ for i in range(len(dataset)):
     # SLIDER
     # -------------------------
     ax_slider = plt.axes([0.2, 0.1, 0.6, 0.03])
-    slider = Slider(ax_slider, "Threshold", 0.0, 1.0, valinit=0.5)
+    slider = Slider(ax_slider, "Threshold", 0.0, 1.0, valinit=0.05)
 
     def update(val):
         thresh = slider.val
-        pred = (probs > thresh)
-        pred_display.set_data(pred)
+        pred_display.set_data((probs > thresh).astype(np.float32))
         fig.canvas.draw_idle()
 
     slider.on_changed(update)
@@ -92,6 +91,7 @@ for i in range(len(dataset)):
     # -------------------------
     # CONTROL
     # -------------------------
+    print("probs min/max:", probs.min(), probs.max())
     cmd = input("Enter = next | q = quit: ")
     if cmd.lower() == "q":
         break

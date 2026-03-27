@@ -82,7 +82,8 @@ def main():
     # model
     model = UNet().to(device)
 
-    bce = nn.BCEWithLogitsLoss()
+    pos_weight = torch.tensor([5.0]).to(device) 
+    bce = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     dice = DiceLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 

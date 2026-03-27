@@ -61,14 +61,32 @@ class XVDataset(Dataset):
         binary_mask = np.isin(mask, [3,4]).astype(np.float32)
 
         # ----------------------
-        # RANDOM CROP
+        # RANDOM CROP + BIAS
         # ----------------------
 
         H, W, _ = stacked.shape
         cs = self.crop_size
 
-        y = random.randint(0, H - cs)
-        x = random.randint(0, W - cs)
+        damage_indices = np.argwhere(binary_mask == 1)
+
+        use_damage_crop = len(damage_indices) > 0 and random.random() < 0.5
+
+        if use_damage_crop:
+            # pick a random damage pixel
+            y_center, x_center = damage_indices[random.randint(0, len(damage_indices) - 1)]
+
+            # convert center → top-left
+            y = y_center - cs // 2
+            x = x_center - cs // 2
+
+            # clamp to image bounds
+            y = max(0, min(y, H - cs))
+            x = max(0, min(x, W - cs))
+
+        else:
+            # fallback: random crop
+            y = random.randint(0, H - cs)
+            x = random.randint(0, W - cs)
 
         stacked = stacked[y:y+cs, x:x+cs]
         binary_mask = binary_mask[y:y+cs, x:x+cs]
