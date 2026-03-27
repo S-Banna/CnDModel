@@ -27,7 +27,7 @@ TARGETS_DIR = os.path.join(DATA_ROOT, "targets")
 # DATASET
 # -------------------------
 class XVDataset(Dataset):
-    def __init__(self, images_dir, targets_dir, crop_size=256):
+    def __init__(self, images_dir, targets_dir, crop_size=256, damage_only=False):
         self.images_dir = images_dir
         self.targets_dir = targets_dir
         self.crop_size = crop_size
@@ -36,6 +36,15 @@ class XVDataset(Dataset):
             f for f in os.listdir(images_dir)
             if "_post" in f
         ]
+
+        if damage_only:
+            self.post_images = [
+                f for f in self.post_images
+                if np.isin(
+                    np.array(Image.open(os.path.join(targets_dir, f.replace(".png", "_target.png")))),
+                    [3, 4]
+                ).any()
+            ]
 
     def __len__(self):
         return len(self.post_images)

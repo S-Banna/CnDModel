@@ -52,7 +52,7 @@ def main():
     best_iou = 0 # saves the best IoU seen at any epoch in training for visualization
 
     # dataset
-    dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256)
+    dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256, damage_only=True)
 
     val_size = int(0.1 * len(dataset))
     train_size = len(dataset) - val_size
@@ -82,14 +82,17 @@ def main():
     # model
     model = UNet().to(device)
 
-    pos_weight = torch.tensor([5.0]).to(device) 
+    pos_weight = torch.tensor([10.0]).to(device) 
     bce = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
     dice = DiceLoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
+    scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(
+        optimizer, mode='max', factor=0.5, patience=5
+    )
 
     model.train()
 
-    epochs = 2
+    epochs = 50
 
     for epoch in range(epochs):
 
@@ -126,6 +129,7 @@ def main():
                 val_iou += compute_iou(outputs, masks)
 
         val_iou /= len(val_loader)
+        scheduler.step(val_iou)
         model.train()
 
         if val_iou > best_iou: # updates the saved model if observed IoU is better than previous epochs
