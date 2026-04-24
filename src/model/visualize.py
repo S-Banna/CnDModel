@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.widgets import Slider
 from dataset import XVDataset
-from unet import UNet
+import segmentation_models_pytorch as smp
 import os, yaml
 
 # -------------------------
@@ -23,14 +23,19 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # -------------------------
 # LOAD MODEL
 # -------------------------
-model = UNet().to(device)
+model = smp.Unet(
+    encoder_name="resnet34",
+    encoder_weights="imagenet",
+    in_channels=6,
+    classes=1,
+).to(device)
 model.load_state_dict(torch.load("model.pth")) 
 model.eval()
 
 # -------------------------
 # DATASET
 # -------------------------
-dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256)
+dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256, damage_only=True)
 
 # -------------------------
 # LOOP

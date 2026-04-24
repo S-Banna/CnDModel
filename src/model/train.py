@@ -5,7 +5,7 @@ from tqdm import tqdm
 from dataset import XVDataset
 from torch.utils.data import DataLoader
 from torch.utils.data import random_split
-from unet import UNet
+import segmentation_models_pytorch as smp
 
 
 class DiceLoss(nn.Module):
@@ -80,7 +80,12 @@ def main():
     )
 
     # model
-    model = UNet().to(device)
+    model = smp.Unet(
+        encoder_name="resnet34",
+        encoder_weights="imagenet",
+        in_channels=6,
+        classes=1,
+    ).to(device)
 
     pos_weight = torch.tensor([10.0]).to(device) 
     bce = nn.BCEWithLogitsLoss(pos_weight=pos_weight)
@@ -92,7 +97,7 @@ def main():
 
     model.train()
 
-    epochs = 50
+    epochs = 30
 
     for epoch in range(epochs):
 
@@ -136,7 +141,8 @@ def main():
             best_iou = val_iou
             torch.save(model.state_dict(), "model.pth")
 
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} - Val IoU: {val_iou:.4f}")
+        current_lr = optimizer.param_groups[0]['lr']
+        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} - Val IoU: {val_iou:.4f} - LR: {current_lr:.2e}")
 
 
 if __name__ == "__main__":
