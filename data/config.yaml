@@ -1,1 +1,2 @@
-DATA_ROOT: "C:/Users/user/Downloads/train_images_labels_targets/train_images_labels_targets/train"
+LEGACY_DATA_ROOT: "C:/Users/user/Downloads/train_images_labels_targets/train_images_labels_targets/train"
+DATA_ROOT: "C:/Users/user/Downloads/xbd-dataset/xbd"
