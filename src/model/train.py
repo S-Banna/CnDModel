@@ -44,40 +44,19 @@ def compute_iou(logits, targets, threshold=0.5):
 
 
 def main():
-    DATA_ROOT = load_config()
-    IMAGES_DIR = os.path.join(DATA_ROOT, "images")
-    TARGETS_DIR = os.path.join(DATA_ROOT, "targets")
-
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     best_iou = 0 # saves the best IoU seen at any epoch in training for visualization
 
-    # dataset
-    dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256, damage_only=True)
+    DATA_ROOT = load_config()
 
-    val_size = int(0.1 * len(dataset))
-    train_size = len(dataset) - val_size
+    # training data: tier1 + tier3
+    train_dataset = XVDataset(DATA_ROOT, subsets=["tier1", "tier3"], crop_size=256, damage_only=True)
 
-    train_dataset, val_dataset = random_split(
-        dataset,
-        [train_size, val_size],
-        generator=torch.Generator().manual_seed(42)
-    )
+    # validation: hold (curated holdout set, never trained on)
+    val_dataset = XVDataset(DATA_ROOT, subsets=["hold"], crop_size=256, damage_only=True)
 
-    train_loader = DataLoader(
-        train_dataset,
-        batch_size=8,
-        shuffle=True,
-        num_workers=4,
-        pin_memory=True
-    )
-
-    val_loader = DataLoader(
-        val_dataset,
-        batch_size=8,
-        shuffle=False,
-        num_workers=4,
-        pin_memory=True
-    )
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True,  num_workers=4, pin_memory=True)
+    val_loader   = DataLoader(val_dataset,   batch_size=8, shuffle=False, num_workers=4, pin_memory=True)
 
     # model
     model = smp.Unet(
@@ -97,21 +76,21 @@ def main():
 
     model.train()
 
-    epochs = 30
+    epochs = 60
 
     for epoch in range(epochs):
 
         total_loss = 0
+        total_bce  = 0
+        total_dice = 0
 
         for images, masks in tqdm(train_loader, desc=f"Epoch {epoch+1}/{epochs}"):
-
             images = images.to(device)
             masks = masks.to(device)
-
             outputs = model(images)
+
             loss_bce = bce(outputs, masks)
             loss_dice = dice(outputs, masks)
-
             loss = loss_bce + loss_dice
 
             optimizer.zero_grad()
@@ -119,8 +98,13 @@ def main():
             optimizer.step()
 
             total_loss += loss.item()
+            total_bce  += loss_bce.item()
+            total_dice += loss_dice.item()
 
         avg_loss = total_loss / len(train_loader)
+        avg_bce  = total_bce  / len(train_loader)
+        avg_dice = total_dice / len(train_loader)
+        avg_mean = avg_loss / 2 
 
         model.eval()
         val_iou = 0
@@ -142,7 +126,7 @@ def main():
             torch.save(model.state_dict(), "model.pth")
 
         current_lr = optimizer.param_groups[0]['lr']
-        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} - Val IoU: {val_iou:.4f} - LR: {current_lr:.2e}")
+        print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} (BCE: {avg_bce:.4f} Dice: {avg_dice:.4f} Mean: {avg_mean:.4f}) - Val IoU: {val_iou:.4f} - LR: {current_lr:.2e}")
 
 
 if __name__ == "__main__":

@@ -15,8 +15,7 @@ def load_config():
     return config["DATA_ROOT"]
 
 DATA_ROOT = load_config()
-IMAGES_DIR = os.path.join(DATA_ROOT, "images")
-TARGETS_DIR = os.path.join(DATA_ROOT, "targets")
+dataset = XVDataset(DATA_ROOT, subsets=["tier1"], crop_size=256, damage_only=True)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -31,11 +30,6 @@ model = smp.Unet(
 ).to(device)
 model.load_state_dict(torch.load("model.pth")) 
 model.eval()
-
-# -------------------------
-# DATASET
-# -------------------------
-dataset = XVDataset(IMAGES_DIR, TARGETS_DIR, crop_size=256, damage_only=True)
 
 # -------------------------
 # LOOP
