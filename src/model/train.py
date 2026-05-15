@@ -55,8 +55,10 @@ def main():
     # validation: hold (curated holdout set, never trained on)
     val_dataset = XVDataset(DATA_ROOT, subsets=["hold"], crop_size=256, damage_only=True)
 
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True,  num_workers=4, pin_memory=True)
-    val_loader   = DataLoader(val_dataset,   batch_size=8, shuffle=False, num_workers=4, pin_memory=True)
+    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True,  num_workers=4, 
+                              pin_memory=True, persistent_workers=True, prefetch_factor=4)
+    val_loader   = DataLoader(val_dataset,   batch_size=8, shuffle=False, num_workers=4, 
+                              pin_memory=True, persistent_workers=True, prefetch_factor=4)
 
     # model
     model = smp.Unet(
