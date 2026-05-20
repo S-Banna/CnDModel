@@ -53,12 +53,44 @@ def main():
     train_dataset = XVDataset(DATA_ROOT, subsets=["tier1", "tier3"], crop_size=256, damage_only=True)
 
     # validation: hold (curated holdout set, never trained on)
-    val_dataset = XVDataset(DATA_ROOT, subsets=["hold"], crop_size=256, damage_only=True)
+    # hold subset -> split into validation + testing
+    hold_dataset = XVDataset(DATA_ROOT, subsets=["hold"], crop_size=256, damage_only=True)
 
-    train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True,  num_workers=4, 
-                              pin_memory=True, persistent_workers=True, prefetch_factor=4)
-    val_loader   = DataLoader(val_dataset,   batch_size=8, shuffle=False, num_workers=4, 
-                              pin_memory=True, persistent_workers=True, prefetch_factor=4)
+    # 80/20 split
+    val_size  = int(0.8 * len(hold_dataset))
+    test_size = len(hold_dataset) - val_size
+
+    val_dataset, test_dataset = random_split(hold_dataset, [val_size, test_size], generator=torch.Generator().manual_seed(42))
+
+    train_loader = DataLoader(
+        train_dataset,
+        batch_size=8,
+        shuffle=True,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=4
+    )
+
+    val_loader = DataLoader(
+        val_dataset,
+        batch_size=8,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=4
+    )
+
+    test_loader = DataLoader(
+        test_dataset,
+        batch_size=8,
+        shuffle=False,
+        num_workers=4,
+        pin_memory=True,
+        persistent_workers=True,
+        prefetch_factor=4
+    )
 
     # model
     model = smp.Unet(
@@ -130,6 +162,25 @@ def main():
         current_lr = optimizer.param_groups[0]['lr']
         print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} (BCE: {avg_bce:.4f} Dice: {avg_dice:.4f} Mean: {avg_mean:.4f}) - Val IoU: {val_iou:.4f} - LR: {current_lr:.2e}")
 
+    print("\nRunning final test evaluation...")
+
+    # load best saved model
+    model.load_state_dict(torch.load("model.pth"))
+
+    model.eval()
+    test_iou = 0
+
+    with torch.no_grad():
+        for images, masks in test_loader:
+            images = images.to(device)
+            masks = masks.to(device)
+
+            outputs = model(images)
+            test_iou += compute_iou(outputs, masks)
+
+    test_iou /= len(test_loader)
+
+    print(f"Final Test IoU: {test_iou:.4f}")
 
 if __name__ == "__main__":
     main()

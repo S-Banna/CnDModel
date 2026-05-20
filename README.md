@@ -91,13 +91,11 @@ Prior to full training, a systematic overfit test was conducted on two damage-co
 
 The xView2 Building Damage Assessment (xBD) dataset was identified as the primary training resource. xBD is a large-scale, publicly available dataset comprising paired pre/post satellite imagery across 19 disaster events worldwide, with pixel-level damage annotations derived from expert building polygon assessments. The dataset provides integer-valued grayscale masks where pixel values encode damage severity on a scale of 0-4, with values 3 and 4 corresponding to major and destroyed damage classes respectively, which are used as the positive class in the binary segmentation formulation.
 
-The full xBD dataset (~22,000 image pairs across all disaster types) was obtained and integrated. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training and hold reserved as the validation set. After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 447 samples in the hold validation set.
-
-The dataset pipeline was extended to handle the xBD naming convention (no _target suffix on mask files, masks/ subfolder rather than targets/), with backward compatibility maintained for the legacy challenge dataset format.
+The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training and hold split and used for the validation set (80% of hold) and testing set (20% of hold). After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 357 samples in the hold validation set, and 90 samples in the hold testing set.
 
 ## 5.2 Pretrained Encoder
 
-The from-scratch U-Net encoder was replaced with a ResNet34 encoder pretrained on ImageNet, implemented via the segmentation-models-pytorch library. This modification provides substantially better initial feature representations: the encoder enters training already capable of detecting edges, textures, and structural forms, rather than beginning from random initialisation. The decoder architecture and training loop were unchanged. The 6-channel input adaptation is handled automatically by the library, which initialises the modified first convolution layer by replicating the pretrained 3-channel weights across both temporal inputs.
+The from-scratch U-Net encoder was replaced with a ResNet34 encoder pretrained on ImageNet, implemented via the segmentation-models-pytorch library. This modification provides substantially better initial feature representations: the encoder enters training already capable of detecting edges, textures, and structural forms, rather than beginning from random initialisation. The decoder architecture and training loop were unchanged. The library automatically adapts the pretrained encoder to accept 6-channel inputs while preserving pretrained feature representations.
 
 The impact of this change was immediate and significant. Under the previous from-scratch architecture, meaningful predictions first appeared around epoch 20 and the model required approximately 50 epochs to reach a validation IoU of 0.46. With the pretrained encoder, an IoU of 0.44 was achieved by epoch 5, and peak performance of 0.52 was observed at epoch 27 within a 30-epoch run. Training throughput also improved from approximately 47 seconds per epoch to 29 seconds per epoch on the same hardware. This represented the single largest observed improvement in convergence speed and validation performance during development.
 
@@ -109,42 +107,27 @@ The 23 manually-collected Google Earth image pairs were normalised to 1024x1024 
 
 ## 6.1 Training Performance
 
-The most recent completed training run covered 30 epochs on the full xBD damage-filtered training set using the pretrained ResNet34 encoder. Selected epoch results are summarised below:
+The most recent completed training run covered 60 epochs on the full xBD damage-filtered training set using the pretrained ResNet34 encoder. Selected epoch results are summarised below:
 
-**Epoch 1:** Loss: 1.55 | Val IoU: 0.126 | LR: 1.00e-04
+**Epoch 1:** Loss: 1.42 | Val IoU: 0.3897 | LR: 1.00e-04
 
-**Epoch 5:** Loss: 1.06 | Val IoU: 0.436 | LR: 1.00e-04
+**Epoch 15:** Loss: 0.75 | Val IoU: 0.469 | LR: 5.00e-05
 
-**Epoch 12:** Loss: 0.81 | Val IoU: 0.464 | LR: 5.00e-05 (LR decay #1)
+**Epoch 25:** Loss: 0.62 | Val IoU: 0.550 | LR: 2.50e-05
 
-**Epoch 16:** Loss: 0.79 | Val IoU: 0.482 | LR: 5.00e-05
+**Epoch 42:** Loss: 0.50 | Val IoU: 0.617 | LR: 1.25e-05 (peak val IoU)
 
-**Epoch 27:** Loss: 0.68 | Val IoU: 0.523 | LR: 2.50e-05 (peak)
+**Epoch 60:** Loss: 0.48 | Val IoU: 0.593 | LR: 1.56e-06
 
-**Epoch 30:** Loss: 0.65 | Val IoU: 0.510 | LR: 2.50e-05
+**Test IoU**: 0.6289
 
-A 60-epoch run on the combined tier1+tier3 dataset is currently in progress. Qualitative inspection using an internal visualisation pipeline confirms that the model produces spatially coherent predictions that correctly identify damaged building footprints in many cases, particularly at a probability threshold of 0.2-0.3. While substantial room for improvement remains, these results indicate that the model is learning meaningful spatial representations of collapsed structures despite significant domain variability, label noise, and severe foreground-background imbalance within the dataset.
+Qualitative inspection using an internal visualisation pipeline confirms that the model produces spatially coherent predictions that correctly identify damaged building footprints in many cases, particularly at a probability threshold of 0.2-0.3. These results indicate that the model is learning meaningful spatial representations of collapsed structures despite significant domain variability, label noise, and severe foreground-background imbalance within the dataset.
 
 ## 6.2 Evaluation Metrics
 
-The primary evaluation metric is Intersection over Union (IoU) computed at a threshold of 0.5 on the binary prediction mask.  IoU is preferred over pixel accuracy due to the severe class imbalance in the dataset: a model predicting all background achieves >90% pixel accuracy but zero IoU. While quantitative evaluation uses a fixed threshold of 0.5, lower thresholds (0.2–0.3) are sometimes used during qualitative inspection to visualise lower-confidence spatial predictions. The combined BCE+Dice loss formulation aligns training directly with region-overlap performance. Separate BCE and Dice loss components are logged per epoch to monitor the relative contribution of each term throughout training.
+The primary evaluation metric is Intersection over Union (IoU) computed at a threshold of 0.5 on the binary prediction mask.  IoU is preferred over pixel accuracy due to the severe class imbalance in the dataset: a model predicting all background achieves >90% pixel accuracy but zero IoU. While quantitative evaluation uses a fixed threshold of 0.5, lower thresholds (0.2–0.3) as well as higher thresholds (0.8-0.9) are sometimes used during qualitative inspection to visualise lower-confidence spatial predictions. The combined BCE+Dice loss formulation aligns training directly with region-overlap performance.
 
-# 7. Planned Next Steps
-
-## 7.1 Immediate
-
-- Complete 60-epoch training run on full xBD tier1+tier3 dataset and evaluate against hold set.
-
-## 7.2 Short-term
-
-- Fine-tuning on locally-acquired conflict-zone imagery (pending data transfer from collaborating researcher). This dataset is expected to be the most impactful single intervention given its domain alignment with the deployment target.
-
-## 7.3 Medium-term
-
-- Second model development: building footprint area estimation and rubble density quantification for downstream reconstruction cost modelling.
-- Inference pipeline packaging for deployment use case.
-
-# 8. Technical Stack Summary
+# 7. Technical Stack Summary
 
 **Language:** Python 3.x
 
@@ -164,9 +147,11 @@ The primary evaluation metric is Intersection over Union (IoU) computed at a thr
 
 **Training Hardware:** NVIDIA RTX 4050 Laptop GPU, 6GB VRAM (CUDA)
 
-**Primary Dataset:** xBD (xView2) — tier1 + tier3 subsets, damage_only filtered
+**Primary Dataset:** xBD (xView2) + manually collected Google Earth imagery — tier1 + tier3 subsets, damage_only filtered (2800 samples)
 
-**Validation Dataset:** xBD hold subset (447 samples)
+**Validation Dataset:** 80% of xBD hold subset, damage_only filtered (357 samples)
+
+**Testing Dataset:** 20% of xBD hold subset, damage_only filtered (90 samples)
 
 **Crop Size:** 256x256 pixels from 1024x1024 source images
 
