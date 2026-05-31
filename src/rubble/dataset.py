@@ -1,91 +1,47 @@
 import os
 import json
 import random
+import numpy as np
 from PIL import Image
 
-import torch
-import numpy as np
 
+def pick_sample(data_root, subset="tier1"):
+    images_dir = os.path.join(data_root, subset, "images")
+    masks_dir  = os.path.join(data_root, subset, "masks")
+    labels_dir = os.path.join(data_root, subset, "labels")
 
-class RubbleDataset:
-    def __init__(self, data_root, subset="tier1"):
-        self.base = os.path.join(data_root, subset)
+    candidates = [
+        f.replace("_pre_disaster.png", "")
+        for f in os.listdir(images_dir)
+        if f.endswith("_pre_disaster.png")
+    ]
 
-        self.images_dir = os.path.join(self.base, "images")
-        self.masks_dir = os.path.join(self.base, "masks")
-        self.labels_dir = os.path.join(self.base, "labels")
+    random.shuffle(candidates)
 
-        self.samples = []
+    for name in candidates:
+        paths = {
+            "name":  name,
+            "pre":   os.path.join(images_dir, f"{name}_pre_disaster.png"),
+            "post":  os.path.join(images_dir, f"{name}_post_disaster.png"),
+            "mask":  os.path.join(masks_dir,  f"{name}_post_disaster.png"),
+            "label": os.path.join(labels_dir, f"{name}_post_disaster.json"),
+        }
+        if all(os.path.exists(p) for p in paths.values() if isinstance(p, str) and p != paths["name"]):
+            return paths
 
-        for file in os.listdir(self.images_dir):
-            if file.endswith("_pre_disaster.png"):
-                base_name = file.replace("_pre_disaster.png", "")
-
-                pre = os.path.join(
-                    self.images_dir,
-                    f"{base_name}_pre_disaster.png"
-                )
-
-                post = os.path.join(
-                    self.images_dir,
-                    f"{base_name}_post_disaster.png"
-                )
-
-                mask = os.path.join(
-                    self.masks_dir,
-                    f"{base_name}_post_disaster.png"
-                )
-
-                label = os.path.join(
-                    self.labels_dir,
-                    f"{base_name}_post_disaster.json"
-                )
-
-                if (
-                    os.path.exists(pre)
-                    and os.path.exists(post)
-                    and os.path.exists(mask)
-                    and os.path.exists(label)
-                ):
-                    self.samples.append({
-                        "name": base_name,
-                        "pre": pre,
-                        "post": post,
-                        "mask": mask,
-                        "label": label,
-                    })
-
-    def __len__(self):
-        return len(self.samples)
-
-    def get_random(self):
-        return random.choice(self.samples)
-
-    def get_by_name(self, name):
-        for s in self.samples:
-            if s["name"] == name:
-                return s
-        return None
+    raise FileNotFoundError("No complete sample found in dataset.")
 
 
 def load_image(path):
-    img = Image.open(path).convert("RGB")
-    img = np.array(img).astype(np.float32) / 255.0
-    return img
-
+    return np.array(Image.open(path).convert("RGB")).astype(np.float32) / 255.0
 
 def load_mask(path):
-    mask = Image.open(path).convert("L")
-    mask = np.array(mask).astype(np.float32)
-
-    if mask.max() > 1:
-        mask = mask / 255.0
-
-    return mask
-
+    mask = np.array(Image.open(path).convert("L")).astype(np.float32)
+    return mask / 255.0 if mask.max() > 1 else mask
 
 def load_gsd(label_path):
-    with open(label_path, "r") as f:
-        data = json.load(f)
-
-    return data["metadata"]["gsd"]
+    with open(label_path) as f:
+        meta = json.load(f)["metadata"]
+    if "pan_resolution" in meta:
+        return meta["pan_resolution"]
+    return meta["gsd"] / 4.0
