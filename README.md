@@ -91,7 +91,7 @@ Prior to full training, a systematic overfit test was conducted on two damage-co
 
 The xView2 Building Damage Assessment (xBD) dataset was identified as the primary training resource. xBD is a large-scale, publicly available dataset comprising paired pre/post satellite imagery across 19 disaster events worldwide, with pixel-level damage annotations derived from expert building polygon assessments. The dataset provides integer-valued grayscale masks where pixel values encode damage severity on a scale of 0-4, with values 3 and 4 corresponding to major and destroyed damage classes respectively, which are used as the positive class in the binary segmentation formulation.
 
-The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training and hold split and used for the validation set (80% of hold) and testing set (20% of hold). After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 357 samples in the hold validation set, and 90 samples in the hold testing set.
+The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training and hold split and used for the validation set (50% of hold) and testing set (50% of hold). After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 223 samples in the hold validation set, and 224 samples in the hold testing set.
 
 ## 5.2 Pretrained Encoder
 
@@ -109,23 +109,37 @@ The 23 manually-collected Google Earth image pairs were normalised to 1024x1024 
 
 The most recent completed training run covered 60 epochs on the full xBD damage-filtered training set using the pretrained ResNet34 encoder. Selected epoch results are summarised below:
 
-**Epoch 1:** Loss: 1.42 | Val IoU: 0.3897 | LR: 1.00e-04
+**Epoch 1:** Loss: 1.3897 | Val IoU: 0.1973 | LR: 1.00e-04
 
-**Epoch 15:** Loss: 0.75 | Val IoU: 0.469 | LR: 5.00e-05
+**Epoch 5:** Loss: 0.9361 | Val IoU: 0.4374 | LR: 1.00e-04
 
-**Epoch 25:** Loss: 0.62 | Val IoU: 0.550 | LR: 2.50e-05
+**Epoch 27:** Loss: 0.6056 | Val IoU: 0.5814 | LR: 5.00e-05
 
-**Epoch 42:** Loss: 0.50 | Val IoU: 0.617 | LR: 1.25e-05 (peak val IoU)
+**Epoch 38:** Loss: 0.5260 | Val IoU: 0.6073 | LR: 2.50e-05 (Peak Val IoU)
 
-**Epoch 60:** Loss: 0.48 | Val IoU: 0.593 | LR: 1.56e-06
-
-**Test IoU**: 0.6289
+**Epoch 60:** Loss: 0.4635 | Val IoU: 0.5775 | LR: 3.13e-06
 
 Qualitative inspection using an internal visualisation pipeline confirms that the model produces spatially coherent predictions that correctly identify damaged building footprints in many cases, particularly at a probability threshold of 0.2-0.3. These results indicate that the model is learning meaningful spatial representations of collapsed structures despite significant domain variability, label noise, and severe foreground-background imbalance within the dataset.
 
 ## 6.2 Evaluation Metrics
 
 The primary evaluation metric is Intersection over Union (IoU) computed at a threshold of 0.5 on the binary prediction mask.  IoU is preferred over pixel accuracy due to the severe class imbalance in the dataset: a model predicting all background achieves >90% pixel accuracy but zero IoU. While quantitative evaluation uses a fixed threshold of 0.5, lower thresholds (0.2–0.3) as well as higher thresholds (0.8-0.9) are sometimes used during qualitative inspection to visualise lower-confidence spatial predictions. The combined BCE+Dice loss formulation aligns training directly with region-overlap performance.
+
+The model was evaluated on the unseen test split (224 images) using both per-image and global confusion matrix styles. Despite the severe class imbalance, the model achieved high spatial agreement:
+
+    Per-image Avg IoU: 0.5883
+
+    Global IoU: 0.6113
+
+    Precision: 0.7198
+
+    Recall: 0.8023
+
+    F1-Score: 0.7588
+
+    Overall Accuracy: 97.10%
+
+The high Recall (80.2%) confirms the model's effectiveness in identifying damaged structures, while the Precision (71.9%) demonstrates a significant reduction in false positives compared to early iterations. The convergence of Global and Per-image IoU suggests consistent performance across varying scales of urban damage.
 
 # 7. Technical Stack Summary
 
@@ -149,9 +163,9 @@ The primary evaluation metric is Intersection over Union (IoU) computed at a thr
 
 **Primary Dataset:** xBD (xView2) + manually collected Google Earth imagery — tier1 + tier3 subsets, damage_only filtered (2800 samples)
 
-**Validation Dataset:** 80% of xBD hold subset, damage_only filtered (357 samples)
+**Validation Dataset:** 50% of xBD hold subset, damage_only filtered (223 samples)
 
-**Testing Dataset:** 20% of xBD hold subset, damage_only filtered (90 samples)
+**Testing Dataset:** 50% of xBD hold subset, damage_only filtered (224 samples)
 
 **Crop Size:** 256x256 pixels from 1024x1024 source images
 
