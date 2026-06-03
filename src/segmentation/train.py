@@ -56,11 +56,42 @@ def main():
     # hold subset -> split into validation + testing
     hold_dataset = XVDataset(DATA_ROOT, subsets=["hold"], crop_size=256, damage_only=True)
 
-    # 80/20 split
-    val_size  = int(0.8 * len(hold_dataset))
-    test_size = len(hold_dataset) - val_size
+    split_file = "split_indices.pt"
 
-    val_dataset, test_dataset = random_split(hold_dataset, [val_size, test_size], generator=torch.Generator().manual_seed(42))
+    if os.path.exists(split_file):
+
+        split_data = torch.load(split_file)
+
+        val_indices = split_data["val_indices"]
+        test_indices = split_data["test_indices"]
+
+        val_dataset = torch.utils.data.Subset(hold_dataset, val_indices)
+        test_dataset = torch.utils.data.Subset(hold_dataset, test_indices)
+
+        print("Loaded existing split.")
+
+    else:
+
+        val_size = int(0.5 * len(hold_dataset))
+        test_size = len(hold_dataset) - val_size
+
+        val_dataset, test_dataset = random_split(
+            hold_dataset,
+            [val_size, test_size],
+            generator=torch.Generator().manual_seed(42)
+        )
+
+        val_indices = val_dataset.indices
+        test_indices = test_dataset.indices
+
+        torch.save({
+            "val_indices": val_indices,
+            "test_indices": test_indices,
+            "val_size": val_size,
+            "test_size": test_size,
+        }, split_file)
+
+        print("Created and saved new split.")
 
     train_loader = DataLoader(
         train_dataset,
@@ -158,6 +189,11 @@ def main():
         if val_iou > best_iou: # updates the saved model if observed IoU is better than previous epochs
             best_iou = val_iou
             torch.save(model.state_dict(), "model.pth")
+            torch.save({
+                "model_state_dict": model.state_dict(),
+                "best_val_iou": best_iou,
+                "epoch": epoch + 1,
+            }, "best_model.pt")
 
         current_lr = optimizer.param_groups[0]['lr']
         print(f"Epoch {epoch+1}/{epochs} - Loss: {avg_loss:.4f} (BCE: {avg_bce:.4f} Dice: {avg_dice:.4f} Mean: {avg_mean:.4f}) - Val IoU: {val_iou:.4f} - LR: {current_lr:.2e}")
@@ -166,9 +202,15 @@ def main():
 
     # load best saved model
     model.load_state_dict(torch.load("model.pth"))
-
     model.eval()
-    test_iou = 0
+
+    # Initialize all metrics
+    TP = 0
+    FP = 0
+    TN = 0
+    FN = 0
+    threshold = 0.5
+    test_iou_sum = 0
 
     with torch.no_grad():
         for images, masks in test_loader:
@@ -176,11 +218,57 @@ def main():
             masks = masks.to(device)
 
             outputs = model(images)
-            test_iou += compute_iou(outputs, masks)
+            
+            # Calculate per-image IoU (matching training script)
+            test_iou_sum += compute_iou(outputs, masks)
+            
+            # Calculate confusion matrix (matching accuracy script)
+            probs = torch.sigmoid(outputs)
+            preds = (probs > threshold).float()
+            
+            TP += ((preds == 1) & (masks == 1)).sum().item()
+            FP += ((preds == 1) & (masks == 0)).sum().item()
+            TN += ((preds == 0) & (masks == 0)).sum().item()
+            FN += ((preds == 0) & (masks == 1)).sum().item()
 
-    test_iou /= len(test_loader)
+    # Calculate metrics (same as accuracy script)
+    test_iou = test_iou_sum / len(test_loader)
+    
+    precision = TP / (TP + FP + 1e-6)
+    recall = TP / (TP + FN + 1e-6)
+    f1 = 2 * precision * recall / (precision + recall + 1e-6)
+    global_iou = TP / (TP + FP + FN + 1e-6)
+    oa = (TP + TN) / (TP + TN + FP + FN + 1e-6)
 
-    print(f"Final Test IoU: {test_iou:.4f}")
+    print(f"\n=== FINAL TEST METRICS ===")
+    print(f"Per-image Avg IoU (training style): {test_iou:.4f}")
+    print(f"Global IoU (confusion matrix style): {global_iou:.4f}")
+    print(f"Precision: {precision:.4f}")
+    print(f"Recall: {recall:.4f}")
+    print(f"F1 Score: {f1:.4f}")
+    print(f"Overall Accuracy (OA): {oa:.4f}")
+    
+    print(f"\nConfusion Matrix:")
+    print(f"TP: {TP:,}")
+    print(f"FP: {FP:,}")
+    print(f"TN: {TN:,}")
+    print(f"FN: {FN:,}")
+
+    # Save metrics to file for later reference
+    metrics = {
+        'test_iou_per_image': test_iou,
+        'test_iou_global': global_iou,
+        'precision': precision,
+        'recall': recall,
+        'f1': f1,
+        'oa': oa,
+        'tp': TP,
+        'fp': FP,
+        'tn': TN,
+        'fn': FN
+    }
+    torch.save(metrics, "test_metrics.pt")
+    print(f"\nMetrics saved to test_metrics.pt")
 
 if __name__ == "__main__":
     main()

@@ -19,3 +19,7 @@ sources.txt
 
 **/diagnose_masks.py
 **/overfit_test.py
+
+**/split_indices.pt
+**/test_metrics.pt
+**/best_model.pt
