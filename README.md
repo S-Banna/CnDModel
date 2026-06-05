@@ -29,13 +29,25 @@ The project was initiated in October 2025 with an exploratory phase focused on u
 
 Initial experiments employed simple pixel-differencing between pre/post image pairs as a baseline change detection approach. Prototype scripts were written to compare image pairs and visualise change heatmaps. While these methods confirmed that meaningful signal exists between pre/post pairs, they demonstrated fundamental limitations: sensitivity to lighting variation, seasonal change, and camera angle differences caused high false positive rates on non-damaged regions. These experiments were archived into a legacy/ directory and the project transitioned to a supervised deep learning approach.
 
-## 2.2 Initial Data Collection
+## 2.2 Initial Data Collection & Baseline Datasets
 
-Early data collection encountered significant obstacles. Access to commercial satellite data providers (including Maxar and NASA portals) was either cost-prohibitive or operationally restricted. As an interim measure, 23 image pairs were manually collected from Google Earth, capturing pre/post views of conflict-affected urban areas in the target region. These images were manually annotated using the LabelMe annotation tool, with damaged building regions labelled as binary masks. This dataset, though limited in scale, served as the first domain-specific training resource and is currently incorporated directly into the training pool alongside xBD samples. A separate holdout domain dataset for cross-domain evaluation is pending transfer from a collaborating researcher.
+Early data collection encountered significant obstacles. Access to commercial satellite data providers (including Maxar and NASA portals) was either cost-prohibitive or operationally restricted. As an interim measure, 23 image pairs were manually collected from Google Earth, capturing pre/post views of conflict-affected urban areas in the target region. These images served as the first domain-specific training resource. 
 
-Image pairs were preprocessed to align spatial extents, normalise resolution, and convert annotation masks from RGB colour coding (LabelMe default) to integer label format compatible with the training pipeline. Damage regions were encoded as pixel value 4 (matching the xBD damage label convention) with background encoded as 0.
+To expand the training pool to a viable scale for deep learning, the pipeline was integrated with the **xBD (xView2 Building Damage Assessment) dataset**. The xBD dataset is a massive, publicly available benchmark specifically selected for this project due to its scale and diversity. It encompasses over 11,000 high-resolution, paired pre- and post-disaster satellite imagery pairs spanning 19 major disaster events worldwide. These events, dating across multiple recent years, cover diverse environmental settings and a wide variety of structural hazards, including earthquakes, hurricanes, floods, volcanic eruptions, and wildfires. This broad representation of disaster typologies allows models to overcome context-specific biases and learn robust features generalizable to novel conflict zones and disaster areas. The dataset includes pixel-level ground truth annotations derived from expert assessments of building polygons, utilizing a standardized grading standard to measure structural impacts *(elaborated further in Section 5.1)*. A separate holdout domain dataset for cross-domain evaluation is pending transfer from a collaborating researcher.
 
-## 2.3 Repository & Infrastructure Setup
+## 2.3 Labeling Protocols & Data Preprocessing
+
+To integrate the heterogeneous sources of satellite imagery, specifically the hand-collected Google Earth imagery and the standardized xBD repository, a rigorous data processing and annotation pipeline was developed.
+
+### 2.3.1 Manual Annotation & Crowd-Sourced Labeling
+For the 23 manually collected Google Earth image pairs, regional structural damage was annotated using the LabelMe polygon annotation tool. Structural collapses and heavily damaged footprints were identified as the primary target instances. Each damaged site was manually traced to capture the exact geometric shape of the rubble fields, generating localized vector inputs that complement the larger xBD dataset.
+
+### 2.3.2 Preprocessing & Mask Categorization
+Because raw annotations from tools like LabelMe default to standard RGB color-coded vectors, a multi-step preprocessing sequence was designed to homogenize the inputs for PyTorch dataset injection:
+- **Resolution Normalization:** Image pairs were resampled to uniform dimensions matching those of the xBD dataset (1024x1024 resolution).
+- **Label Mapping and Mask Encoding:** Vector polygons were converted into discrete integer-valued grayscale label masks. To maintain absolute compatibility with the xBD label convention, background pixels were mapped to an integer value of `0`, while structural damage and rubble zones were mapped to a fixed integer value of `4` (the xBD equivalent for total collapse). This unified binary masking scheme ensures a stable loss signal during training.
+
+## 2.4 Repository & Infrastructure Setup
 
 Concurrent with data collection, the repository was restructured for collaborative development. A configuration system using config.yaml was introduced to decouple data paths from code, enabling the pipeline to run across different machines without code modification. Large data files and model weights were excluded from version control via .gitignore. The codebase was separated into src/ (model and training code) and data/ (configuration and local data references).
 
@@ -91,7 +103,7 @@ Prior to full training, a systematic overfit test was conducted on two damage-co
 
 The xView2 Building Damage Assessment (xBD) dataset was identified as the primary training resource. xBD is a large-scale, publicly available dataset comprising paired pre/post satellite imagery across 19 disaster events worldwide, with pixel-level damage annotations derived from expert building polygon assessments. The dataset provides integer-valued grayscale masks where pixel values encode damage severity on a scale of 0-4, with values 3 and 4 corresponding to major and destroyed damage classes respectively, which are used as the positive class in the binary segmentation formulation.
 
-The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training and hold split and used for the validation set (50% of hold) and testing set (50% of hold). After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 223 samples in the hold validation set, and 224 samples in the hold testing set.
+The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training, and hold used for the validation set (50% of hold) and testing set (50% of hold). After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 223 samples in the hold validation set, and 224 samples in the hold testing set.
 
 ## 5.2 Pretrained Encoder
 
