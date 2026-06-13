@@ -1,8 +1,10 @@
 import os
 import yaml
+import json
 import numpy as np
 from PIL import Image
 from collections import defaultdict
+from datetime import datetime
 
 def load_config():
     with open("../../data/config.yaml", "r") as f:
@@ -48,11 +50,12 @@ def main():
     DATA_ROOT = load_config()
     SUBSETS = ["tier1", "tier3", "hold"]
 
-    # per disaster: total pairs, pairs with damage, images only in hold
+    # per disaster: total pairs, pairs with damage, subsets, capture dates
     stats = defaultdict(lambda: {
         "total": 0,
         "with_damage": 0,
         "subsets": set(),
+        "capture_dates": [],
         "unmatched_prefix": False
     })
 
@@ -70,6 +73,8 @@ def main():
             f for f in os.listdir(masks_dir)
             if "_post" in f and "_rgb" not in f and f.endswith(".png")
         ]
+
+        labels_dir = os.path.join(DATA_ROOT, subset, "labels")
 
         for fname in post_masks:
             key = get_disaster_key(fname)
@@ -89,10 +94,25 @@ def main():
             if has_damage:
                 stats[key]["with_damage"] += 1
 
+            # pull capture date from json label if available
+            if os.path.exists(labels_dir):
+                json_fname = fname.replace(".png", ".json")
+                json_path  = os.path.join(labels_dir, json_fname)
+                if os.path.exists(json_path):
+                    try:
+                        with open(json_path) as f:
+                            label = json.load(f)
+                        date_str = label.get("metadata", {}).get("capture_date", "")
+                        if date_str:
+                            dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                            stats[key]["capture_dates"].append(dt)
+                    except Exception:
+                        pass
+
     # -------------------------
     # PRINT TABLE
     # -------------------------
-    col_w = [38, 22, 6, 5, 8, 14, 8]
+    col_w = [38, 22, 6, 5, 8, 14, 8, 26]
     header = (
         f"{'Disaster Event':<{col_w[0]}} "
         f"{'Event Dates':<{col_w[1]}} "
@@ -100,7 +120,8 @@ def main():
         f"{'Env':<{col_w[3]}} "
         f"{'Subsets':<{col_w[4]}} "
         f"{'Total Pairs':>{col_w[5]}} "
-        f"{'W/ Dmg':>{col_w[6]}}"
+        f"{'W/ Dmg':>{col_w[6]}} "
+        f"{'Capture Date Range':<{col_w[7]}}"
     )
     divider = "-" * len(header)
 
@@ -116,8 +137,16 @@ def main():
     for key, meta in DISASTER_META.items():
         s = stats[key]
         subsets_str = "+".join(sorted(s["subsets"])) if s["subsets"] else "—"
-        pct = f"{100*s['with_damage']/s['total']:.0f}%" if s["total"] > 0 else "—"
+        pct  = f"{100*s['with_damage']/s['total']:.0f}%" if s["total"] > 0 else "—"
         flag = " ⚠️" if s["with_damage"] == 0 else ""
+
+        # capture date range
+        if s["capture_dates"]:
+            mn = min(s["capture_dates"]).strftime("%Y-%m-%d")
+            mx = max(s["capture_dates"]).strftime("%Y-%m-%d")
+            date_range = mn if mn == mx else f"{mn} → {mx}"
+        else:
+            date_range = "—"
 
         print(
             f"{meta['name']:<{col_w[0]}} "
@@ -126,7 +155,8 @@ def main():
             f"{meta['env']:<{col_w[3]}} "
             f"{subsets_str:<{col_w[4]}} "
             f"{s['total']:>{col_w[5]}} "
-            f"{s['with_damage']:>{col_w[6]}}  ({pct}){flag}"
+            f"{s['with_damage']:>{col_w[6]}}  ({pct}){flag:4} "
+            f"{date_range:<{col_w[7]}}"
         )
         total_pairs   += s["total"]
         total_damaged += s["with_damage"]
