@@ -173,7 +173,11 @@ The high Recall (80.2%) confirms the model's effectiveness in identifying damage
 
 **Training Hardware:** NVIDIA RTX 4050 Laptop GPU, 6GB VRAM (CUDA)
 
-**Primary Dataset:** xBD (xView2) + manually collected Google Earth imagery — tier1 + tier3 subsets, damage_only filtered (2800 samples)
+**Primary Dataset:** xBD (xView2) + manually collected Google Earth imagery
+
+**Dataset Partitioning:** The xBD dataset was provided with predefined subsets: tier1, tier3, and hold. All tier1 and tier3 samples were used exclusively for training. The predefined hold subset was reserved for evaluation and further divided into validation and testing sets using a fixed 50/50 random split.
+
+**Training Dataset:** xBD tier1 and tier3 subsets + manually collected Google Earth imagery, damage_only filtered (2800 samples)
 
 **Validation Dataset:** 50% of xBD hold subset, damage_only filtered (223 samples)
 
