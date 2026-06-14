@@ -24,3 +24,5 @@ sources.txt
 **/test_metrics.pt
 **/best_model.pt
 **/todo.txt
+
+**/tables.py
