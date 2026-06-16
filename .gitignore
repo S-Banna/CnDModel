@@ -28,3 +28,5 @@ sources.txt
 **/tables.py
 **/model_info.py
 **/model_info.txt
+
+src/pipeline/outputs
