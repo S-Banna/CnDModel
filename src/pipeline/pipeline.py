@@ -15,7 +15,7 @@ from config import RUN_LIST
 
 import sys
 sys.path.append("../rubble")
-from quantify import quantify_building #type: ignore
+from quantify import quantify_building # type: ignore
 
 
 # =============================================================================
