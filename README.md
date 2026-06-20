@@ -131,7 +131,9 @@ The most recent completed training run covered 60 epochs on the full xBD damage-
 
 **Epoch 60:** Loss: 0.4635 | Val IoU: 0.5775 | LR: 3.13e-06
 
-Qualitative inspection using an internal visualisation pipeline confirms that the model produces spatially coherent predictions that correctly identify damaged building footprints in many cases, particularly at a probability threshold of 0.2-0.3. These results indicate that the model is learning meaningful spatial representations of collapsed structures despite significant domain variability, label noise, and severe foreground-background imbalance within the dataset.
+Qualitative inspection using an internal visualisation pipeline confirms that the model produces spatially coherent predictions that correctly identify damaged building footprints in many cases, particularly at a probability threshold* of 0.2-0.3. These results indicate that the model is learning meaningful spatial representations of collapsed structures despite significant domain variability, label noise, and severe foreground-background imbalance within the dataset.
+
+***Threshold Definition:** The model outputs a continuous probability value between 0 and 1 for each pixel, representing its confidence that the pixel belongs to a damaged or collapsed structure. To convert these probabilistic predictions into a discrete binary segmentation mask (i.e., damaged vs. not damaged), a thresholding operation is applied. Specifically, each pixel with a predicted probability greater than or equal to the threshold is classified as damaged and included in the final mask, while all other pixels are classified as background. The standard threshold for quantitative evaluation is 0.5, which balances precision and recall at the decision boundary. However, during qualitative inspection, lower thresholds (e.g., 0.2–0.3) may be used to visualise the model's lower-confidence spatial predictions, while higher thresholds (e.g., 0.8–0.9) can be used to isolate only the most certain detections. This thresholding mechanism is essential for translating the model's continuous output into actionable damage maps.
 
 ## 6.2 Evaluation Metrics
 
