@@ -21,6 +21,16 @@ This project develops an automated satellite-imagery analysis pipeline for rapid
 
 The current phase focuses on deep learning-based pixel-level segmentation of collapsed or heavily damaged structures from paired pre-event and post-event satellite imagery. These segmentation outputs form the foundation for a planned second-stage debris quantification pipeline intended to estimate rubble volume, material composition, and reconstruction burden at building and neighbourhood scales.
 
+## 1.1 Overview of the Proposed Framework
+
+The proposed framework performs binary semantic segmentation of satellite imagery to identify collapsed or heavily damaged buildings following disasters or armed conflicts. The model forms the first stage of a broader damage assessment pipeline, producing building-level damage masks that are subsequently used for rubble quantification and reconstruction analysis. While the following sections describe each component in detail, this section provides a high-level overview of the overall methodology.
+
+Training is primarily based on the xView2 Building Damage Assessment (xBD) dataset, a large-scale public benchmark widely used throughout the remote sensing literature for post-disaster damage assessment. The dataset contains paired pre-event and post-event high-resolution satellite imagery together with expert-annotated building damage labels spanning multiple disaster types worldwide. In addition, a smaller collection of manually acquired Google Earth image pairs was incorporated to begin adapting the model toward the project's target domain. Further details regarding both datasets and their preprocessing are presented in Sections 2 and 5.
+
+Unlike the original xBD benchmark, which formulates damage assessment as a building localisation followed by four-class damage classification (no damage, minor damage, major damage, and destroyed), this work simplifies the task into a binary segmentation problem. During preprocessing, the original xBD labels corresponding to major damage and destroyed (classes 3 and 4) are merged into a single positive damage class, while all remaining pixels are treated as background. This formulation was selected because the downstream objective of the project is rubble detection and volume estimation, where accurately identifying severely damaged structures is more important than distinguishing between intermediate damage categories.
+
+The segmentation network is implemented as a U-Net using a pretrained ResNet34 encoder provided by the segmentation-models-pytorch library. Paired pre-event and post-event RGB images are stacked channel-wise into a six-channel input tensor, allowing the network to learn spatial and temporal changes jointly. The model produces a dense pixel-level probability map indicating the likelihood that each pixel belongs to a heavily damaged or collapsed structure, which is converted into a binary damage mask using a configurable probability threshold (see Section 6.1). Rather than manually designing the encoder-decoder architecture, the project adopts the standard pretrained ResNet34 encoder together with its corresponding U-Net decoder and skip connections. Model optimisation is performed end-to-end using a combined Binary Cross-Entropy and Dice loss. The architecture, training procedure, and evaluation methodology are discussed in detail throughout Sections 3–6.
+
 # 2. Phase 1: Exploration & Prototyping (Oct – Dec 2025)
 
 The project was initiated in October 2025 with an exploratory phase focused on understanding the problem space and establishing a working data pipeline. Early work consisted of classical image processing approaches, repository organisation, and initial data collection efforts.
@@ -63,6 +73,8 @@ Following the classical approach being discarded, the project adopted a U-Net en
 - It is computationally tractable on consumer GPU hardware, enabling rapid iteration and practical experimentation under limited compute constraints.
 
 The initial implementation comprised a three-level encoder (64, 128, 256 channels), a 512-channel bottleneck, and a symmetric decoder with transposed convolution upsampling and skip connections. All weights were randomly initialised and trained from scratch in the initial experiments.
+
+This initial architecture served as a development baseline and was later replaced by the pretrained ResNet34 U-Net described in Section 5.2, which constitutes the current model used throughout the remainder of this report.
 
 ## 3.2 Custom Dataset Implementation
 
