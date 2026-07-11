@@ -31,3 +31,5 @@ sources.txt
 
 src/pipeline/outputs
 **/mod.py
+
+**/im/
