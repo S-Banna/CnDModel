@@ -119,6 +119,10 @@ The full xBD dataset (~11,000 image pairs across all disaster types) was obtaine
 
 ## 5.2 Pretrained Encoder
 
+During the model architecture design stage, the initial from-scratch U-Net encoder described in Section 3.1 was replaced with a pretrained ResNet34 encoder before training. This modification was introduced to leverage transfer learning, improving feature extraction and accelerating convergence while retaining the original U-Net decoder and skip connections.
+
+The initial from-scratch U-Net implementation served as a development baseline for validating the data pipeline, loss formulation, and overall training procedure. Once the training pipeline had been verified, the encoder was replaced with a pretrained ResNet34 backbone to investigate whether transfer learning could improve convergence speed and segmentation performance. This architecture constitutes the final model used throughout the remainder of this work.
+
 The from-scratch U-Net encoder was replaced with a ResNet34 encoder pretrained on ImageNet, implemented via the segmentation-models-pytorch library. This modification provides substantially better initial feature representations: the encoder enters training already capable of detecting edges, textures, and structural forms, rather than beginning from random initialisation. The decoder architecture and training loop were unchanged. The library automatically adapts the pretrained encoder to accept 6-channel inputs while preserving pretrained feature representations.
 
 The impact of this change was immediate and significant. Under the previous from-scratch architecture, meaningful predictions first appeared around epoch 20 and the model required approximately 50 epochs to reach a validation IoU of 0.46. With the pretrained encoder, an IoU of 0.44 was achieved by epoch 5, and peak performance of 0.52 was observed at epoch 27 within a 30-epoch run. Training throughput also improved from approximately 47 seconds per epoch to 29 seconds per epoch on the same hardware. This represented the single largest observed improvement in convergence speed and validation performance during development.
