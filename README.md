@@ -11,7 +11,7 @@
 
 **Status:** Active Development — Model training ongoing
 
-**Report Period:** October 2025 – May 2026
+**Report Period:** October 2025 – July 2026
 
 ---
 
@@ -204,6 +204,80 @@ The high Recall (80.2%) confirms the model's effectiveness in identifying damage
 **Crop Size:** 256x256 pixels from 1024x1024 source images
 
 **Batch Size:** 8
+
+# 8. Rubble Quantification Pipeline
+
+## 8.1 Overview
+
+The rubble quantification pipeline forms the second stage of the proposed framework. While the damage segmentation model identifies collapsed or heavily damaged buildings from paired satellite imagery, this stage estimates the physical consequences of that damage, including rubble volume, material composition, and approximate cleanup requirements.
+
+The pipeline is designed as a modular framework in which the segmentation outputs generated during Phase 1 are processed individually for each detected building. Using the detected building footprint together with metadata such as the ground sampling distance (GSD) and structure height, the framework estimates a range of engineering quantities that may assist post-conflict damage assessment and reconstruction planning.
+
+Unlike the segmentation stage, which is entirely data-driven, this phase combines image-derived measurements with engineering assumptions regarding typical building characteristics and construction materials.
+
+## 8.2 Pipeline Inputs
+
+Each sample is defined through a configuration entry containing the required information for processing.
+
+| Parameter                         | Description                                       |
+|-----------------------------------|---------------------------------------------------|
+| Pre image                         | Pre-conflict satellite image                      |
+| Post image                        | Post-conflict satellite image                     |
+| Ground-truth mask (optional)      | Used only for evaluation metrics                  |
+| Ground Sampling Distance (GSD)    | Spatial resolution in metres per pixel            |
+
+The segmentation model generates a binary damage mask which serves as the primary input to the rubble estimation stage.
+
+## 8.3 Processing Pipeline
+
+For each image pair, the pipeline performs the following operations:
+
+1. Load the pretrained segmentation model.
+2. Predict a binary damage mask from the paired pre- and post-conflict imagery.
+3. Optionally compare the prediction against a manually annotated ground-truth mask and compute segmentation performance metrics.
+4. Extract individual damaged buildings using connected-component analysis.
+5. Estimate the physical properties of each detected building.
+6. Export visualisations, tabulated results, and summary statistics.
+
+This workflow enables multiple image pairs to be processed sequentially using a batch configuration file.
+
+## 8.4 Building Extraction
+
+The predicted binary damage mask is first refined using morphological closing to remove small gaps and connect neighbouring damaged regions.
+
+Connected-component analysis is then applied to identify individual damaged structures. Small detections below a predefined pixel-area threshold are discarded to reduce noise and false detections.
+
+Each remaining connected component is treated as an individual damaged building and assigned a unique identifier for subsequent analysis.
+
+## 8.5 Rubble Quantification
+
+For each detected building, the framework estimates:
+
+- Building footprint area
+- Building height
+- Building volume
+- Rubble volume
+- Material composition
+- Estimated cleanup requirements
+
+The footprint area is computed directly from the segmented building mask using the supplied ground sampling distance. Building height is currently estimated using engineering assumptions associated with the selected structure type, although the framework is designed to accommodate externally generated height estimates in the future, using techniques such as shadow height estimation or software like MicMac.
+
+Using these geometric properties, the pipeline estimates rubble volume before approximating the mass of major construction materials, including concrete, steel, masonry, wood, and other materials. Finally, approximate cleanup durations are estimated using simplified productivity assumptions for manual labour and construction equipment.
+
+## 8.6 Pipeline Outputs
+
+For every processed sample, the pipeline automatically generates an output directory containing:
+
+| Output                        | Description                                           |
+|-------------------------------|-------------------------------------------------------|
+| Pipeline visualisation        | Summary figure showing the segmentation results       |
+| Building identification map   | Damaged buildings labelled with unique IDs            |
+| Rubble mass table             | Estimated volume and material quantities              |
+| Cleanup table                 | Estimated cleanup effort                              |
+| Accuracy report               | Segmentation metrics (when ground truth is available) |
+| Summary report                | Aggregate statistics for the processed scene          |
+
+These outputs provide both qualitative visualisations and quantitative estimates that can be incorporated into downstream reconstruction planning or further engineering analysis.
 
 ---
 
