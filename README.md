@@ -1,7 +1,7 @@
 # Collapse & Damage Detection Model
 ## Technical Progress Report
 
-**May 2026**
+**August 2026**
 
 ---
 
@@ -11,7 +11,7 @@
 
 **Status:** Active Development — Model training ongoing
 
-**Report Period:** October 2025 – July 2026
+**Report Period:** October 2025 – August 2026
 
 ---
 
@@ -59,7 +59,7 @@ Because raw annotations from tools like LabelMe default to standard RGB color-co
 
 ## 2.4 Repository & Infrastructure Setup
 
-Concurrent with data collection, the repository was restructured for collaborative development. A configuration system using config.yaml was introduced to decouple data paths from code, enabling the pipeline to run across different machines without code modification. Large data files and model weights were excluded from version control via .gitignore. The codebase was separated into src/ (model and training code) and data/ (configuration and local data references).
+Concurrent with data collection, the repository was restructured for collaborative development. A configuration system using `config.yaml` was introduced to decouple data paths from code, enabling the pipeline to run across different machines without code modification. Large data files and model weights were excluded from version control via `.gitignore`. The codebase was separated into `src/` (model and training code) and `data/` (configuration and local data references).
 
 # 3. Phase 2: Architecture & Dataset Selection (Jan – Feb 2026)
 
@@ -115,7 +115,7 @@ Prior to full training, a systematic overfit test was conducted on two damage-co
 
 The xView2 Building Damage Assessment (xBD) dataset was identified as the primary training resource. xBD is a large-scale, publicly available dataset comprising paired pre/post satellite imagery across 19 disaster events worldwide, with pixel-level damage annotations derived from expert building polygon assessments. The dataset provides integer-valued grayscale masks where pixel values encode damage severity on a scale of 0-4, with values 3 and 4 corresponding to major and destroyed damage classes respectively, which are used as the positive class in the binary segmentation formulation.
 
-The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training, and hold used for the validation set (50% of hold) and testing set (50% of hold). The xBD dataset was used as-is with a damage_only filter applied, meaning only images which contain at least one damaged/collapsed building were used. After applying the damage_only image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 223 samples in the hold validation set, and 224 samples in the hold testing set.
+The full xBD dataset (~11,000 image pairs across all disaster types) was obtained. The dataset is partitioned into tier1 (high-confidence labels), tier3 (lower-confidence labels), hold (curated validation set), and test subsets. The training pipeline was updated to support multi-subset loading, with tier1 and tier3 used for training, and hold used for the validation set (50% of hold) and testing set (50% of hold). The xBD dataset was used as-is with a `damage_only` filter applied, meaning only images which contain at least one damaged/collapsed building were used. After applying the `damage_only` image filter, the effective training pool comprised approximately 2,800 source image pairs from the combined tier1 and tier3 subsets, with 223 samples in the hold validation set, and 224 samples in the hold testing set.
 
 ## 5.2 Pretrained Encoder
 
@@ -225,6 +225,7 @@ Each sample is defined through a configuration entry containing the required inf
 | Post image                        | Post-conflict satellite image                     |
 | Ground-truth mask (optional)      | Used only for evaluation metrics                  |
 | Ground Sampling Distance (GSD)    | Spatial resolution in metres per pixel            |
+| Structure type                    | Manually selected during inspection               |
 
 The segmentation model generates a binary damage mask which serves as the primary input to the rubble estimation stage.
 
@@ -260,7 +261,7 @@ For each detected building, the framework estimates:
 - Material composition
 - Estimated cleanup requirements
 
-The footprint area is computed directly from the segmented building mask using the supplied ground sampling distance. Building height is currently estimated using engineering assumptions associated with the selected structure type, although the framework is designed to accommodate externally generated height estimates in the future, using techniques such as shadow height estimation or software like MicMac.
+The footprint area is computed directly from the segmented building mask using the supplied ground sampling distance. Building height is currently estimated using engineering assumptions associated with the selected structure type, although the framework is designed to accommodate externally generated height estimates in the future, using techniques such as shadow height estimation or photogrammetric reconstruction (e.g., MicMac, an open-source photogrammetry package).
 
 Using these geometric properties, the pipeline estimates rubble volume before approximating the mass of major construction materials, including concrete, steel, masonry, wood, and other materials. Finally, approximate cleanup durations are estimated using simplified productivity assumptions for manual labour and construction equipment.
 
@@ -278,6 +279,54 @@ For every processed sample, the pipeline automatically generates an output direc
 | Summary report                | Aggregate statistics for the processed scene          |
 
 These outputs provide both qualitative visualisations and quantitative estimates that can be incorporated into downstream reconstruction planning or further engineering analysis.
+
+## 8.7 Quantification Methodology
+
+Once individual damaged buildings have been isolated through connected-component analysis (Section 8.4), each detected building is passed through a dedicated quantification routine that converts pixel-based measurements into physical engineering estimates.
+
+**Geometric conversion.** The pixel area of a detected building is first converted into a real-world footprint area using the ground sampling distance supplied for that image pair (area in square metres equals pixel count multiplied by the square of the GSD, since GSD expresses the linear ground distance represented by one pixel: A_footprint = N_pixels × GSD²). Because satellite imagery only captures a building's footprint, not its full volumetric extent, the framework applies a structure-type lookup to estimate the number of floors and, from that, an approximate building height (based on a fixed per-floor height of 3 metres). Multiplying the footprint by the number of floors gives an approximate total built-up area, representing the cumulative floor area across all levels of the structure, not just what is visible from above.
+
+*Area_built = Area_footprint × N_floors*
+
+**Rubble volume estimation.** The built-up area is converted into an estimated rubble volume using a fixed empirical rubble generation rate of 0.8 cubic metres of debris per square metre of built-up area. This coefficient is drawn from prior literature on post-conflict debris estimation (Tamraz, Srour & Chehab, 2012) and reflects observed relationships between structural floor area and resulting debris volume following building collapse. 
+
+*V_rubble = A_built × C_debris*
+
+**Material composition.** Each structure type is associated with a fixed material breakdown (percentage splits for concrete, steel, masonry, wood, and other materials), reflecting typical construction practices for that building category. The total rubble volume is distributed across these material categories proportionally, and each material's volume is then converted to mass using standard reference densities (e.g. 2400 kg/m³ for concrete, 7850 kg/m³ for steel). Summing across all materials yields the total estimated rubble mass for the building.
+
+*m_material = V_rubble × f_material × ρ_material*  &nbsp;&nbsp;&nbsp;*-- where f_material is the fractional composition and ρ_material the reference density*
+
+Currently, all buildings processed in a given batch run share a single user-specified structure type (e.g. "Residential Low Rise"), meaning floor count and material splits are not yet inferred per-building from imagery, but assumed uniformly across a scene. This is a simplification the framework is designed to relax in future work.
+
+## 8.8 Cleanup Effort Estimation
+
+In addition to physical quantities, the pipeline estimates the approximate labour and equipment time required to clear the debris of each building, based on productivity assumptions from the same literature source.
+
+**Manual sorting.** A fraction of the estimated steel tonnage (70%) is assumed to be accessible for manual extraction and sorting, reflecting the practice of manually salvaging steel reinforcement from rubble before mechanical clearance. This accessible steel mass is divided by the combined output of a fixed manual labour crew (4 labourers, each processing 0.7 tonnes per hour) to yield an estimated manual sorting time.
+
+*t_manual = (M_steel × 0.7) / (4 × 0.7 t/hr)*
+
+**Mechanical clearance.** The concrete component of the rubble volume is assumed to be cleared using an excavator with a fixed productivity rate (roughly 70.5 m³/hour, based on a reference machine model), while the total rubble volume as a whole is assumed to require loading and haulage using a wheel loader with its own productivity rate (roughly 160.9 m³/hour, again based on a reference machine). These two operations are modelled independently and their durations are summed alongside the manual sorting time.
+
+*t_excavator = V_concrete / 70.5 m³/hr*
+
+*t_loader = V_total / 160.9 m³/hr*
+
+*t_total = t_manual + t_excavator + t_loader*
+
+**Total effort.** The manual, excavation, and loading hours are summed to produce a total cleanup time per building, which is then converted into estimated workdays assuming an 8-hour working day. These per-building estimates are aggregated across all detected buildings in a scene to produce scene-level totals for rubble mass, volume, and cleanup duration, reported in the final summary output.
+
+## 8.9 End-to-End Pipeline Execution
+
+The full pipeline is orchestrated by a driver script that ties the segmentation model, building extraction, and quantification routine together into a single automated workflow, runnable either on a single image pair or in batch mode across a predefined list of samples.
+
+For each sample, the script first loads the pre- and post-event image pair and, if available, a corresponding ground-truth damage mask. The trained segmentation model is loaded once and reused across all samples in a batch run, avoiding redundant model initialisation. The pre/post images are stacked into the same six-channel format used during training and passed through the model to obtain a per-pixel probability map, which is then thresholded (default 0.5, configurable) to produce a binary damage mask.
+
+If a ground-truth mask is supplied, the pipeline computes the same suite of evaluation metrics used during training and testing (IoU, precision, recall, F1, and overall accuracy), allowing per-scene accuracy to be checked whenever labelled data is available.
+
+The binary mask is then cleaned using morphological closing (with a kernel size derived from the scene's GSD, so that the closing operation corresponds to a consistent real-world gap distance regardless of image resolution) before connected-component analysis extracts individual candidate buildings, discarding components below a minimum pixel-area threshold to suppress noise. Each surviving component is quantified using the methodology described in Sections 8.7–8.8.
+
+Finally, the script assembles all outputs for the sample into a dedicated output folder: a composite figure showing the pre-image, post-image, damage overlay, ground truth (where available), raw prediction, and border overlay; a labelled building-identification map; CSV tables of rubble mass and cleanup effort per building; a text file of accuracy metrics (when ground truth is available); and a scene-level summary text file totalling rubble volume, mass, and cleanup duration. This structure allows results to be inspected visually and quantitatively on a per-scene basis, while also supporting straightforward aggregation across many scenes when run in batch mode.
 
 ---
 
