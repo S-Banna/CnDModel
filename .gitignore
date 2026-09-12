@@ -33,3 +33,5 @@ src/pipeline/outputs
 **/mod.py
 
 **/im/
+
+test_env/
