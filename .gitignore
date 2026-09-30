@@ -15,8 +15,6 @@ sources.txt
 
 **/legacy/
 
-**/model.pth
-
 **/diagnose_masks.py
 **/overfit_test.py
 
