@@ -55,7 +55,7 @@ For the 23 manually collected Google Earth image pairs, regional structural dama
 ### 2.3.2 Preprocessing & Mask Categorization
 Because raw annotations from tools like LabelMe default to standard RGB color-coded vectors, a multi-step preprocessing sequence was designed to homogenize the inputs for PyTorch dataset injection:
 - **Resolution Normalization:** Image pairs were resampled to uniform dimensions matching those of the xBD dataset (1024x1024 resolution).
-- **Label Mapping and Mask Encoding:** Vector polygons were converted into discrete integer-valued grayscale label masks. To maintain absolute compatibility with the xBD label convention, background pixels were mapped to an integer value of `0`, while structural damage and rubble zones were mapped to a fixed integer value of `4` (the xBD equivalent for total collapse). This unified binary masking scheme ensures a stable loss signal during training.
+- **Label Mapping and Mask Encoding:** Vector polygons were converted into discrete integer-valued grayscale label masks. To maintain absolute compatibility with the xBD label convention, background pixels were mapped to an integer value of `0`, while structural damage and rubble zones were mapped to a fixed integer value of `3` (the xBD equivalent for total collapse). This unified binary masking scheme ensures a stable loss signal during training.
 
 ## 2.4 Repository & Infrastructure Setup
 
