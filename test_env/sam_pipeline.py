@@ -233,7 +233,7 @@ def main():
                     help="resize each crop to this square size before SAM (0=off)")
     ap.add_argument("--conf", type=float, default=0.2,
                     help="SAM 3 confidence threshold (selection filters further)")
-    ap.add_argument("--min-island", type=int, default=40)
+    ap.add_argument("--min-island", type=int, default=100)
     ap.add_argument("--min-contain", type=float, default=0.6)
     args = ap.parse_args()
 
