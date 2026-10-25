@@ -32,5 +32,9 @@ src/pipeline/outputs
 
 **/im/
 
-test_env/
+test_env/legacy
+test_env/PolyFootNet
+test_env/inspection_results
+test_env/samples
+test_env/sam3.pt
 test_env2/
