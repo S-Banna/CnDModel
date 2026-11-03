@@ -1,0 +1,47 @@
+Files found: 22068   parsed: 22068   skipped: 0
+Subset analysed: stage=pre  ->  11034 tiles, 36 scenes
+Angle field: off_nadir_angle   pixel-size field: pan_resolution (falls back to gsd)
+Usable = angle >= 25.0 deg AND pixel size <= 1.0 m
+
+Off-nadir angle percentiles (deg)   p0  p5  p25  p50  p75  p95  p100
+  tiles :   3.6    5.7   14.4   20.2   25.0   27.3   27.3
+  scenes:   3.6    5.4   11.8   19.8   24.2   26.8   27.3
+
+Tiles  with angle >= 25.0:  21.9%   usable:  21.9%
+Scenes with angle >= 25.0:  19.4%   usable:  19.4%
+
+Pixel size (m): p5=0.47  p50=0.52  p95=0.58
+Height error per 1 px of offset (m): p5=1.05  p50=1.41  p95=4.21
+
+Counts by stage (all files): {'post': 11034, 'pre': 11034}
+
+By disaster:
+                     tiles  scenes  median_angle  %>=thr  %usable
+disaster                                                         
+portugal-wildfire     1869       1          27.3   100.0    100.0
+pinery-bushfire       1845       2          22.1     0.0      0.0
+socal-fire            1403       3          15.4     0.0      0.0
+woolsey-fire           878       2          15.4     0.0      0.0
+nepal-flooding         619       3          17.8    29.7     29.7
+hurricane-michael      550       2          19.8    26.5     26.5
+hurricane-florence     546       2          25.0     4.2      4.2
+hurricane-harvey       522       2          24.5     0.0      0.0
+midwest-flooding       445       2          20.2     0.0      0.0
+hurricane-matthew      405       3          14.4     0.0      0.0
+santa-rosa-wildfire    377       2           5.7     0.0      0.0
+tuscaloosa-tornado     343       1           4.7     0.0      0.0
+lower-puna-volcano     291       1          11.0     0.0      0.0
+moore-tornado          227       1          12.9     0.0      0.0
+palu-tsunami           196       5          26.7    80.1     80.1
+mexico-earthquake      193       2          19.7    18.1     18.1
+joplin-tornado         149       1          10.0     0.0      0.0
+sunda-tsunami          148       1          24.1     0.0      0.0
+guatemala-volcano       28       2          17.9     0.0      0.0
+
+By sensor:
+                  tiles  scenes  median_angle  %>=thr  %usable
+sensor                                                        
+WORLDVIEW02        9402      25          20.2    23.7     23.7
+GEOEYE01            929       4          25.0    17.8     17.8
+QUICKBIRD02         492       2           4.7     0.0      0.0
+WORLDVIEW03_VNIR    211       5          19.7    10.9     10.9
