@@ -74,5 +74,41 @@ The current intended pipeline is:
 The exact implementation of the Phase 2 pipeline is not yet finalized.
 
 ## Current Status
-
-Phase 2 is under active investigation. The immediate objective is to establish a reliable method for estimating building height from the available imagery before attempting full rubble-volume or material-mass estimation.
+ 
+Phase 2 is under active investigation.
+ 
+No height estimate has been validated yet, and nothing has been tested on the target (Lebanon) imagery. All results so far come from a small number of xBD examples.
+ 
+### Status by approach
+ 
+| # | Approach | Status |
+|---|----------|--------|
+| 1 | Off-nadir geometry | Relationship defined: `h = d · GSD / tan(θ)`, where `d` is the roof-to-footprint displacement in pixels. A 1 px error in `d` gives about `GSD / tan(θ)` metres of height error (roughly 1.1 m at 25° and 0.9 m at 30° for 0.5 m GSD). The displacement estimator is not implemented yet. |
+| 2 | Roof/facade segmentation | Two SAM 3 prototypes implemented (see below). Not yet evaluated systematically. |
+| 3 | OBM | Run on 2 xBD images in WSL; the old MMDetection environment was hard to reproduce and results were poor. This is not a fair test, since xBD is mostly near-nadir and OBM is built for off-nadir imagery. OBM is SAM v1-based and box-prompted, and outputs roof plus roof-to-footprint offset (relative height). It does not segment facades. PolyFootNet weights are public, but its polygon/keypoint code is withheld; roof and offset prediction goes through the OBM code. Not yet run. |
+| 4 | DSM / DTM data | Available data was too low quality (more than multiple meters GSD, up to 30m). At high resolutions, a single pixel in the map can represent multiple buildings. |
+| 5 | Photogrammetry | Not started. |
+| 6 | Height validation | Not started. No reference heights collected yet. |
+ 
+### Roof/facade segmentation prototype
+ 
+* `sam3_roof_facade.py`: for each Phase 1 building island, take a padded square crop (upscaled to SAM 3's input size), run text prompts for roof and facade, pick the instance that best matches that island, and let the roof win where masks overlap. SAM 3 treats a box prompt as a visual exemplar, not a spatial restriction, so crop-and-select is used instead of box prompting.
+* `sam3_roof_building_facade.py`: facade is defined as building minus roof, using "building" and "roof" prompts. The roof is nested inside the building mask and thin edge slivers are removed. Each building gets a status (`ok`, `no_roof`, `no_building`, `no_facade`, `no_roof_no_building`), and masks, an overview image, and a JSON record are saved. The logic was checked with a stubbed model; it has not yet been run on real imagery.
+* Manual checks of the direct facade prompt on a few xBD buildings showed some good roof/facade separations, but there is no quantitative evaluation.
+### Data
+ 
+* **Pre-disaster (Lebanon):** awaiting delivery. Expected to include off-nadir angle and GSD metadata, off-nadir angle above 25°, and GSD below 1 m. This is not confirmed yet.
+* **Post-disaster:** likely Google Earth imagery, manually aligned. It needs no metadata for damage assessment, but it provides no viewing geometry for height. The Phase 1 model may need augmentation or retraining to port to this imagery.
+* **Metadata audit:** `metadata_histogram.py` summarizes off-nadir angle, pixel size, scene IDs, and azimuth from label JSONs (xBD layout) and reports the fraction of imagery usable for off-nadir height estimation. It is intended to be rerun on the Lebanon metadata when it arrives.
+* **Fallback datasets identified, not yet used:** Maxar Open Data (Beirut 2020), SpaceNet MVOI (multi-angle, for testing performance against off-nadir angle), BONAI and BANDON (roof, footprint, and offset labels).
+### Known issues
+ 
+* Adjacent buildings can merge into one Phase 1 connected component, causing SAM 3 to segment only one building or produce inaccurate masks.
+* Poor Phase 1 masks degrade the crops and the instance selection. Larger padding and a re-segmentation fallback for incomplete masks still need investigation.
+* Facade segmentation is unreliable under occlusion, nearby structures, varying building heights, multiple visible sides, and low off-nadir angles.
+* The current xBD examples may not represent the quality or characteristics of the target imagery.
+### Next Steps
+ 
+1. Obtain the Lebanon imagery metadata, run the metadata audit, and confirm the off-nadir and GSD constraints.
+2. Fine-tune SAM 3 on BANDON using the training pipeline in the SAM 3 repository. Compare zero-shot and fine-tuned roof/building IoU on held-out BANDON tiles, plus an out-of-domain satellite check.
+3. Once target data is available, compare the SAM 3 roof/facade approach with OBM/PolyFootNet on the same buildings against reference heights, and reassess the approach.
