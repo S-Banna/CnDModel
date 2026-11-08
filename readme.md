@@ -120,14 +120,15 @@ The model included in the repository is intended primarily to make the inference
 
 ```text
 CnDModel/
-├── model.pth
-├── pipeline-plusacc.py
 ├── samples/
 │   ├── ...
 │   └── ...
 ├── src/
 │   ├── segmentation/
-│   └── rubble/
+│       └── model.pth
+│   ├── rubble/
+│   └── pipeline/
+│       └── pipeline-plusacc.py
 ├── docs/
 │   ├── docs_P1.md
 │   └── docs_P2.md

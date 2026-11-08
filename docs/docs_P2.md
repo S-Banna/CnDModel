@@ -92,7 +92,7 @@ No height estimate has been validated yet, and nothing has been tested on the ta
  
 ### Roof/facade segmentation prototype
  
-* `sam3_roof_facade.py`: for each Phase 1 building island, take a padded square crop (upscaled to SAM 3's input size), run text prompts for roof and facade, pick the instance that best matches that island, and let the roof win where masks overlap. SAM 3 treats a box prompt as a visual exemplar, not a spatial restriction, so crop-and-select is used instead of box prompting.
+* `sam_pipeline.py`: for each Phase 1 building island, take a padded square crop (upscaled to SAM 3's input size), run text prompts for roof and facade, pick the instance that best matches that island, and let the roof win where masks overlap. SAM 3 treats a box prompt as a visual exemplar, not a spatial restriction, so crop-and-select is used instead of box prompting.
 * `sam3_roof_building_facade.py`: facade is defined as building minus roof, using "building" and "roof" prompts. The roof is nested inside the building mask and thin edge slivers are removed. Each building gets a status (`ok`, `no_roof`, `no_building`, `no_facade`, `no_roof_no_building`), and masks, an overview image, and a JSON record are saved. The logic was checked with a stubbed model; it has not yet been run on real imagery.
 * Manual checks of the direct facade prompt on a few xBD buildings showed some good roof/facade separations, but there is no quantitative evaluation.
 ### Data
