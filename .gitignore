@@ -37,3 +37,5 @@ test_env/inspection_results
 test_env/samples
 test_env/sam3.pt
 test_env/bpe_simple_vocab_16e6.txt.gz
+
+**/bandon_vis.*
